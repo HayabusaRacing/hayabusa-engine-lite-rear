@@ -1,0 +1,82 @@
+2025-07-07 05:02:04,901    c50198fa8674:62464  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:02:04,903    c50198fa8674:62464  INFO     Started with PID 62519 - in FoamThread.py:204
+2025-07-07 05:02:04,925    c50198fa8674:62464  ERROR    --> FOAM FATAL IO ERROR: (openfoam-2506) - in BasicRunner.py:386
+2025-07-07 05:02:04,925    c50198fa8674:62464  ERROR    Cannot open include file "/root/case/system/streamLines" while reading dictionary "system/controlDict/functions" - in BasicRunner.py:386
+2025-07-07 05:02:04,925    c50198fa8674:62464  ERROR    file: system/controlDict at line 56. - in BasicRunner.py:386
+2025-07-07 05:02:04,925    c50198fa8674:62464  ERROR        From static bool Foam::functionEntries::includeEntry::execute(bool, Foam::dictionary&, Foam::Istream&) - in BasicRunner.py:386
+2025-07-07 05:02:04,925    c50198fa8674:62464  ERROR        in file db/dictionary/functionEntries/includeEntry/includeEntry.C at line 179. - in BasicRunner.py:386
+2025-07-07 05:02:04,925    c50198fa8674:62464  ERROR    FOAM exiting - in BasicRunner.py:386
+2025-07-07 05:02:04,927    c50198fa8674:62464  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:03:44,451    c50198fa8674:63465  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:03:44,452    c50198fa8674:63465  INFO     Started with PID 63520 - in FoamThread.py:204
+2025-07-07 05:03:44,464    c50198fa8674:63465  ERROR    --> FOAM FATAL IO ERROR: (openfoam-2506) - in BasicRunner.py:386
+2025-07-07 05:03:44,464    c50198fa8674:63465  ERROR    Cannot open include file "/root/case/system/wallBoundedStreamLines" while reading dictionary "system/controlDict/functions" - in BasicRunner.py:386
+2025-07-07 05:03:44,465    c50198fa8674:63465  ERROR    file: system/controlDict at line 57. - in BasicRunner.py:386
+2025-07-07 05:03:44,465    c50198fa8674:63465  ERROR        From static bool Foam::functionEntries::includeEntry::execute(bool, Foam::dictionary&, Foam::Istream&) - in BasicRunner.py:386
+2025-07-07 05:03:44,465    c50198fa8674:63465  ERROR        in file db/dictionary/functionEntries/includeEntry/includeEntry.C at line 179. - in BasicRunner.py:386
+2025-07-07 05:03:44,465    c50198fa8674:63465  ERROR    FOAM exiting - in BasicRunner.py:386
+2025-07-07 05:03:44,466    c50198fa8674:63465  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:04:39,579    c50198fa8674:64040  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:04:39,581    c50198fa8674:64040  INFO     Started with PID 64092 - in FoamThread.py:204
+2025-07-07 05:04:39,591    c50198fa8674:64040  ERROR    --> FOAM FATAL IO ERROR: (openfoam-2506) - in BasicRunner.py:386
+2025-07-07 05:04:39,591    c50198fa8674:64040  ERROR    Cannot open include file "/root/case/system/cuttingPlane" while reading dictionary "system/controlDict/functions" - in BasicRunner.py:386
+2025-07-07 05:04:39,592    c50198fa8674:64040  ERROR    file: system/controlDict at line 58. - in BasicRunner.py:386
+2025-07-07 05:04:39,592    c50198fa8674:64040  ERROR        From static bool Foam::functionEntries::includeEntry::execute(bool, Foam::dictionary&, Foam::Istream&) - in BasicRunner.py:386
+2025-07-07 05:04:39,592    c50198fa8674:64040  ERROR        in file db/dictionary/functionEntries/includeEntry/includeEntry.C at line 179. - in BasicRunner.py:386
+2025-07-07 05:04:39,592    c50198fa8674:64040  ERROR    FOAM exiting - in BasicRunner.py:386
+2025-07-07 05:04:39,593    c50198fa8674:64040  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:05:27,997    c50198fa8674:64537  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:05:27,999    c50198fa8674:64537  INFO     Started with PID 64592 - in FoamThread.py:204
+2025-07-07 05:05:28,011    c50198fa8674:64537  ERROR    --> FOAM FATAL IO ERROR: (openfoam-2506) - in BasicRunner.py:386
+2025-07-07 05:05:28,012    c50198fa8674:64537  ERROR    Cannot open include file "/root/case/system/ensightWrite" while reading dictionary "system/controlDict/functions" - in BasicRunner.py:386
+2025-07-07 05:05:28,012    c50198fa8674:64537  ERROR    file: system/controlDict at line 60. - in BasicRunner.py:386
+2025-07-07 05:05:28,012    c50198fa8674:64537  ERROR        From static bool Foam::functionEntries::includeEntry::execute(bool, Foam::dictionary&, Foam::Istream&) - in BasicRunner.py:386
+2025-07-07 05:05:28,012    c50198fa8674:64537  ERROR        in file db/dictionary/functionEntries/includeEntry/includeEntry.C at line 179. - in BasicRunner.py:386
+2025-07-07 05:05:28,012    c50198fa8674:64537  ERROR    FOAM exiting - in BasicRunner.py:386
+2025-07-07 05:05:28,013    c50198fa8674:64537  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:05:56,543    c50198fa8674:64889  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:05:56,546    c50198fa8674:64889  INFO     Started with PID 64941 - in FoamThread.py:204
+2025-07-07 05:05:56,557    c50198fa8674:64889  ERROR    --> FOAM FATAL IO ERROR: (openfoam-2506) - in BasicRunner.py:386
+2025-07-07 05:05:56,558    c50198fa8674:64889  ERROR    Cannot open include file "/root/case/system/solverInfo" while reading dictionary "system/controlDict/functions" - in BasicRunner.py:386
+2025-07-07 05:05:56,558    c50198fa8674:64889  ERROR    file: system/controlDict at line 62. - in BasicRunner.py:386
+2025-07-07 05:05:56,558    c50198fa8674:64889  ERROR        From static bool Foam::functionEntries::includeEntry::execute(bool, Foam::dictionary&, Foam::Istream&) - in BasicRunner.py:386
+2025-07-07 05:05:56,558    c50198fa8674:64889  ERROR        in file db/dictionary/functionEntries/includeEntry/includeEntry.C at line 179. - in BasicRunner.py:386
+2025-07-07 05:05:56,558    c50198fa8674:64889  ERROR    FOAM exiting - in BasicRunner.py:386
+2025-07-07 05:05:56,559    c50198fa8674:64889  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:06:21,033    c50198fa8674:65182  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:06:21,036    c50198fa8674:65182  INFO     Started with PID 65234 - in FoamThread.py:204
+2025-07-07 05:06:21,047    c50198fa8674:65182  ERROR    --> FOAM FATAL IO ERROR: (openfoam-2506) - in BasicRunner.py:386
+2025-07-07 05:06:21,048    c50198fa8674:65182  ERROR    Cannot open include file "/root/case/system/graphFunctionObject" while reading dictionary "system/controlDict/functions" - in BasicRunner.py:386
+2025-07-07 05:06:21,048    c50198fa8674:65182  ERROR    file: system/controlDict at line 63. - in BasicRunner.py:386
+2025-07-07 05:06:21,048    c50198fa8674:65182  ERROR        From static bool Foam::functionEntries::includeEntry::execute(bool, Foam::dictionary&, Foam::Istream&) - in BasicRunner.py:386
+2025-07-07 05:06:21,048    c50198fa8674:65182  ERROR        in file db/dictionary/functionEntries/includeEntry/includeEntry.C at line 179. - in BasicRunner.py:386
+2025-07-07 05:06:21,048    c50198fa8674:65182  ERROR    FOAM exiting - in BasicRunner.py:386
+2025-07-07 05:06:21,049    c50198fa8674:65182  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:06:48,081    c50198fa8674:65514  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:06:48,084    c50198fa8674:65514  INFO     Started with PID 65566 - in FoamThread.py:204
+2025-07-07 05:06:48,096    c50198fa8674:65514  ERROR    --> FOAM FATAL IO ERROR: (openfoam-2506) - in BasicRunner.py:386
+2025-07-07 05:06:48,096    c50198fa8674:65514  ERROR    Cannot open include file "/root/case/system/foamReport" while reading dictionary "system/controlDict/functions" - in BasicRunner.py:386
+2025-07-07 05:06:48,096    c50198fa8674:65514  ERROR    file: system/controlDict at line 64. - in BasicRunner.py:386
+2025-07-07 05:06:48,096    c50198fa8674:65514  ERROR        From static bool Foam::functionEntries::includeEntry::execute(bool, Foam::dictionary&, Foam::Istream&) - in BasicRunner.py:386
+2025-07-07 05:06:48,096    c50198fa8674:65514  ERROR        in file db/dictionary/functionEntries/includeEntry/includeEntry.C at line 179. - in BasicRunner.py:386
+2025-07-07 05:06:48,097    c50198fa8674:65514  ERROR    FOAM exiting - in BasicRunner.py:386
+2025-07-07 05:06:48,098    c50198fa8674:65514  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:07:17,341    c50198fa8674:65848  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:07:17,344    c50198fa8674:65848  INFO     Started with PID 65900 - in FoamThread.py:204
+2025-07-07 05:07:17,366    c50198fa8674:65848  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:08:43,499    c50198fa8674:66715  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:11:02,922    c50198fa8674:68073  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:11:02,924    c50198fa8674:68073  INFO     Started with PID 68135 - in FoamThread.py:204
+2025-07-07 05:11:02,949    c50198fa8674:68073  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:11:33,700    c50198fa8674:68427  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:11:33,703    c50198fa8674:68427  INFO     Started with PID 68479 - in FoamThread.py:204
+2025-07-07 05:11:33,724    c50198fa8674:68427  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:12:10,507    c50198fa8674:68837  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:12:10,509    c50198fa8674:68837  INFO     Started with PID 68896 - in FoamThread.py:204
+2025-07-07 05:12:10,529    c50198fa8674:68837  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:13:27,535    c50198fa8674:69594  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:13:27,538    c50198fa8674:69594  INFO     Started with PID 69646 - in FoamThread.py:204
+2025-07-07 05:13:27,560    c50198fa8674:69594  INFO     Finished - in BasicRunner.py:471
+2025-07-07 05:14:12,984    c50198fa8674:70158  INFO     Starting: blockMesh -case ../case in /root/foam - in BasicRunner.py:158
+2025-07-07 05:14:12,987    c50198fa8674:70158  INFO     Started with PID 70210 - in FoamThread.py:204
+2025-07-07 05:14:13,012    c50198fa8674:70158  INFO     Finished - in BasicRunner.py:471

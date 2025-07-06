@@ -49,7 +49,7 @@ boundaryField
         type            rotatingWallVelocity;
         origin          (0.02549998 -0.0285 0.014);
         axis            (1 0 0);
-        omega           100;
+        omega           1428.57;
     }
     
     FR
@@ -57,7 +57,7 @@ boundaryField
         type            rotatingWallVelocity;
         origin          (-0.02549998 -0.0285 0.014);
         axis            (1 0 0);
-        omega           100;
+        omega           1428.57;
     }
     
     RL
@@ -65,7 +65,7 @@ boundaryField
         type            rotatingWallVelocity;
         origin          (0.02349999 0.0915 0.014);
         axis            (1 0 0);
-        omega           100;
+        omega           1428.57;
     }
     
     RR
@@ -73,7 +73,7 @@ boundaryField
         type            rotatingWallVelocity;
         origin          (-0.02350001 0.0915 0.014);
         axis            (1 0 0);
-        omega           100;
+        omega           1428.57;
     }
 
     #include "include/frontBackUpperPatches"
