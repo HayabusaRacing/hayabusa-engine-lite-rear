@@ -209,3 +209,7 @@ __marimo__/
 .ssh
 .vscode-server
 .cache
+
+case/
+
+.DS_Store
