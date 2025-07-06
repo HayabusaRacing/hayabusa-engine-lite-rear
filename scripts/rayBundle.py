@@ -176,9 +176,3 @@ class RayBundle:
 
         mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
         mesh.export(file_name)
-
-
-if __name__ == "__main__":
-    bundle = RayBundle(width=0.07, height=0.0255, depth=0.02, density=15, center=[0, -0.0625, 0.015], unit='m')
-    bundle.visualize(scale=5.0)
-    bundle.export_stl("output.stl")
