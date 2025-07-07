@@ -213,3 +213,7 @@ __marimo__/
 case/
 
 .DS_Store
+
+.launchpadlib
+
+.pyFoam
