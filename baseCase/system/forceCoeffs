@@ -26,7 +26,7 @@ forceCoeffs1
     pitchAxis       (0 1 0);
     magUInf         20;
     lRef            0.12;        // Wheelbase length
-    Aref            0.75;        // Estimated
+    Aref            1;        // Estimated
 }
 
 /*
