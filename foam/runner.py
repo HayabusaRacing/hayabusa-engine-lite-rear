@@ -1,6 +1,7 @@
 from PyFoam.RunDictionary.ParsedParameterFile import ParsedParameterFile
 from PyFoam.Execution.UtilityRunner import UtilityRunner
 from PyFoam.Execution.BasicRunner import BasicRunner
+import time
 import os
 
 class OpenFOAMParallelRunner:
@@ -65,6 +66,8 @@ class OpenFOAMParallelRunner:
         return True
     
     def run_all(self):
+        start_time = time.time()
+        
         if not self.run_blockMesh():
             return False
         if not self.run_all_surfaceFeatureExtract():
@@ -77,6 +80,11 @@ class OpenFOAMParallelRunner:
             return False
         if not self.reconstruct_case():
             return False
+        
+        end_time = time.time()
+        elapsed = end_time - start_time
+        print(f"Total time elapsed: {elapsed:.2f} s")
+    
         return True
 
 if __name__ == "__main__":
