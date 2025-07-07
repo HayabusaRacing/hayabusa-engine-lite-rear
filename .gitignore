@@ -214,6 +214,6 @@ case/
 
 .DS_Store
 
-.launchpadlib
+/.launchpadlib/
 
-.pyFoam
+/.pyFoam/
