@@ -79,7 +79,26 @@ class RayBundle:
         return np.array(rays), np.array(ts)
 
     def set_ts(self, ts):
+        assert len(ts) == len(self.rays), "Length mismatch between ts and rays"
         self.ts = ts
+        new_vertices = [None] * len(self.vertices)
+        index_map = {}
+
+        for idx, info in enumerate(self.ray_point_infos):
+            new_point = info.ray.at_t(ts[idx])
+            new_point_tuple = tuple(np.round(new_point, 10))
+            index_map[new_point_tuple] = info.vertex_idx
+            new_vertices[info.vertex_idx] = new_point
+            self.ray_point_infos[idx] = RayPointInfo(
+                i=info.i, j=info.j, face=info.face, ray=info.ray, t=ts[idx],
+                point=new_point, vertex_idx=info.vertex_idx
+            )
+
+    self.vertices = np.array(new_vertices)
+    self.index_map = index_map
+        
+    def get_ts(self) -> list[float]:
+        return list(self.ts)
 
     def get_points(self):
         return self.vertices
