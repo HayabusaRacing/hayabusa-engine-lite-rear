@@ -10,35 +10,35 @@ class OpenFOAMParallelRunner:
         self.n_proc = n_proc
         
     def run_blockMesh(self):
-        runner = UtilityRunner(argv=["blockMesh", "-case", self.case_dir], silent=False)
+        runner = UtilityRunner(argv=["blockMesh", "-case", str(self.case_dir)], silent=False)
         runner.quiet = False
         runner.start()
         runner.run.join()
         return runner.run.returncode == 0
     
     def run_surfaceFeatureExtract(self, dictPath):
-        runner = UtilityRunner(argv=["surfaceFeatureExtract", "-case", self.case_dir, "-dict", dictPath], silent=False)
+        runner = UtilityRunner(argv=["surfaceFeatureExtract", "-case", str(self.case_dir), "-dict", str(dictPath)], silent=False)
         runner.quiet = False
         runner.start()
         runner.run.join()
         return runner.run.returncode == 0
     
     def run_snappyHexMesh(self):
-        runner = UtilityRunner(argv=["snappyHexMesh", "-overwrite", "-case", self.case_dir], silent=False)
+        runner = UtilityRunner(argv=["snappyHexMesh", "-overwrite", "-case", str(self.case_dir)], silent=False)
         runner.quiet = False
         runner.start()
         runner.run.join()
         return runner.run.returncode == 0
 
     def decompose_case(self):
-        runner = UtilityRunner(argv=["decomposePar", "-force", "-case", self.case_dir], silent=False)
+        runner = UtilityRunner(argv=["decomposePar", "-force", "-case", str(self.case_dir)], silent=False)
         runner.quiet = False
         runner.start()
         runner.run.join()
         return runner.run.returncode == 0
 
     def run_parallel_simpleFoam(self):
-        mpirun_cmd = ["mpirun", "--allow-run-as-root", "-np", str(self.n_proc), "simpleFoam", "-case", self.case_dir, "-parallel"]
+        mpirun_cmd = ["mpirun", "--allow-run-as-root", "-np", str(self.n_proc), "simpleFoam", "-case", str(self.case_dir), "-parallel"]
         runner = BasicRunner(argv=mpirun_cmd, silent=False)
         runner.quiet = False
         runner.start()

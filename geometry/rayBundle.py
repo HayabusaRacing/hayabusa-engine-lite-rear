@@ -6,7 +6,6 @@ from matplotlib.widgets import Button
 import trimesh
 from collections import namedtuple
 
-matplotlib.use('TkAgg')
 
 RayPointInfo = namedtuple('RayInfo', ['i', 'j', 'face', 'ray', 't', 'point', 'vertex_idx'])
 
@@ -94,8 +93,8 @@ class RayBundle:
                 point=new_point, vertex_idx=info.vertex_idx
             )
 
-    self.vertices = np.array(new_vertices)
-    self.index_map = index_map
+        self.vertices = np.array(new_vertices)
+        self.index_map = index_map
         
     def get_ts(self) -> list[float]:
         return list(self.ts)

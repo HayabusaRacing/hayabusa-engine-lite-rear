@@ -1,7 +1,10 @@
 import shutil
 import os
 
-def setup_case(base_dir="../baseCase", case_dir="../case"):
+from pathlib import Path
+from config import BASE_DIR, CASE_DIR
+
+def setup_case(base_dir=BASE_DIR, case_dir=CASE_DIR):
     if os.path.exists(case_dir):
         shutil.rmtree(case_dir)
 
