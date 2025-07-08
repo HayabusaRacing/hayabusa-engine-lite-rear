@@ -46,7 +46,7 @@ class OpenFOAMParallelRunner:
         return runner.run.returncode == 0
 
     def reconstruct_case(self):
-        runner = UtilityRunner(argv=["reconstructPar", "-case", self.case_dir], silent=False)
+        runner = UtilityRunner(argv=["reconstructPar", "-case", str(self.case_dir)], silent=False)
         runner.quiet = False
         runner.start()
         runner.run.join()

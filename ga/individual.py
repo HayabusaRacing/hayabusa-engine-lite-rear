@@ -5,9 +5,9 @@ import random
 class Individual:
     def __init__(self, ts):
         self.params = GeometryParams(ts)
-        self.fitness = None
+        self.fitness = None        
 
-    def mutate(self, rate=0.1, strength=0.05):
+    def mutate(self, rate=0.2, strength=0.004):
         new_ts = []
         for t in self.params.ts:
             if random.random() < rate:
@@ -20,3 +20,6 @@ class Individual:
         ts2 = other.params.ts
         child_ts = [(a + b) / 2 for a, b in zip(ts1, ts2)]
         return Individual(child_ts)
+    
+    def clone(self):
+        return Individual(self.params.ts.copy())
