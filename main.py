@@ -6,8 +6,10 @@ from geometry.rayBundle import RayBundle
 import numpy as np
 import random
 
+from config import MESH_WIDTH, MESH_HEIGHT, MESH_DEPTH, MESH_DENSITY, MESH_CENTER, MESH_UNIT, NUM_GENERATIONS, POPULATION_SIZE, MUTATION_FACTOR
+
 def get_ts_length_from_raybundle():
-    dummy = RayBundle(width=0.07, height=0.0255, depth=0.02, density=10, center=[0, -0.0625, 0.015], unit='m')
+    dummy = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
     return len(dummy.ts)
 
 def dummy_evaluate(params):
@@ -19,13 +21,10 @@ def dummy_evaluate(params):
         print(f"Evaluation error: {e}")
         return float('inf')
 
-NUM_GENERATIONS = 20
-POPULATION_SIZE = 10
-MUTATION_FACTOR = 0.2
 TS_LENGTH = get_ts_length_from_raybundle()
 
 def generate_initial_population(ts_length, size):
-    dummy = RayBundle(width=0.07, height=0.0255, depth=0.02, density=10, center=[0, -0.0625, 0.015], unit='m')
+    dummy = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
     return [Individual(dummy.ts)]
 
 def evolve():

@@ -1,12 +1,17 @@
+from geometry.rayBundle import RayBundle
 from ga.individual import Individual
 from ga.evaluate import evaluate
 import random
 
+from config import POPULATION_SIZE, NUM_GENERATIONS
+
 class Optimizer:
-    def __init__(self, population_size=10, generations=20):
+    def __init__(self, population_size=POPULATION_SIZE, generations=NUM_GENERATIONS):
         self.population_size = population_size
         self.generations = generations
-        self.population = [Individual(ts=[0.5] * 300) for _ in range(population_size)]
+        bundle = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
+        initial_ts = bundle.get_ts()
+        self.population = [Individual(initial_ts) for _ in range(population_size)]
 
     def run(self):
         for gen in range(self.generations):

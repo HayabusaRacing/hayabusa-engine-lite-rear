@@ -3,15 +3,15 @@ from geometry.geometryParams import GeometryParams
 from foam.setupCase import setup_case
 from foam.runner import OpenFOAMParallelRunner
 from foam.extractCD import extract_latest_cd
-from config import BASE_DIR, CASE_DIR, TMP_DIR
+from config import BASE_DIR, CASE_DIR, TMP_DIR, MESH_WIDTH, MESH_HEIGHT, MESH_DEPTH, MESH_DENSITY, MESH_CENTER, MESH_UNIT
 
 import trimesh
 from pathlib import Path
 
-def evaluate(params: GeometryParams, density=10) -> float:
+def evaluate(params: GeometryParams) -> float:
     setup_case(base_dir=BASE_DIR, case_dir=CASE_DIR)
     
-    bundle = RayBundle(width=0.07, height=0.0255, depth=0.02, density=density, center=[0, -0.0625, 0.015], unit='m')
+    bundle = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
     bundle.set_ts(params.ts)
     bundle.export_stl(TMP_DIR / "wing.stl")
     mesh_wing = trimesh.load(TMP_DIR / "wing.stl")
