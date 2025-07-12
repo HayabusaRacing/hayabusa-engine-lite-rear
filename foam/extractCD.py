@@ -4,7 +4,7 @@ import numpy as np
 from pathlib import Path
 from config import CASE_DIR
 
-def extract_latest_cd(post_dir: str = CASE_DIR / "postProcessing" / "forceCoeffs1" / "0"):
+def extract_latest_cd(post_dir: str = str(CASE_DIR / "postProcessing" / "forceCoeffs1" / "0")):
     filepath = os.path.join(post_dir, "coefficient.dat")
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"coefficient.dat not found at: {filepath}")

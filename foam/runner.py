@@ -40,7 +40,6 @@ class OpenFOAMParallelRunner:
     def run_parallel_simpleFoam(self):
         mpirun_cmd = ["mpirun", "--allow-run-as-root", "-np", str(self.n_proc), "simpleFoam", "-case", str(self.case_dir), "-parallel"]
         runner = BasicRunner(argv=mpirun_cmd, silent=False)
-        runner.quiet = False
         runner.start()
         runner.run.join()
         return runner.run.returncode == 0
