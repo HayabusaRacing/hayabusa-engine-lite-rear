@@ -217,3 +217,5 @@ case/
 /.launchpadlib/
 
 /.pyFoam/
+
+.python_history
