@@ -7,6 +7,7 @@ parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 sys.path.append(parent_dir)
 
 from geometry.rayBundle import RayBundle
+from config import MESH_WIDTH, MESH_HEIGHT, MESH_DEPTH, MESH_DENSITY, MESH_CENTER, MESH_UNIT
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--gen", type=int, default=0)
@@ -22,6 +23,6 @@ path_str = "../results/" + gen_str + "/" + child_str + "/ts.json"
 with open(path_str, "r") as f:
     data = json.load(f)
 
-bundle = RayBundle(width=0.07, height=0.0255, depth=0.02, density=10, center=[0, -0.0625, 0.015], unit='m')
+bundle = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
 bundle.set_ts(data)
 bundle.export_stl("wing.stl")
