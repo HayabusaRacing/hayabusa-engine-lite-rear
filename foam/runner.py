@@ -3,29 +3,31 @@ from PyFoam.Execution.UtilityRunner import UtilityRunner
 from PyFoam.Execution.BasicRunner import BasicRunner
 import time
 import os
+import sys
+from pathlib import Path
 
 class OpenFOAMParallelRunner:
-    def __init__(self, case_dir, n_proc=6):
+    def __init__(self, case_dir, n_proc=6, case_id=None):
         self.case_dir = case_dir
         self.n_proc = n_proc
+        self.case_id = case_id
+        
+    def _run_with_log(self, argv, operation):
+        """Run OpenFOAM command normally (verbose terminal output)"""
+        runner = UtilityRunner(argv=argv, silent=False)
+        runner.quiet = False
+        runner.start()
+        runner.run.join()
+        return runner.run.returncode == 0
         
     def run_blockMesh(self):
-        runner = UtilityRunner(argv=["blockMesh", "-case", str(self.case_dir)], silent=False)
-        runner.quiet = False
-        runner.start()
-        runner.run.join()
-        return runner.run.returncode == 0
+        return self._run_with_log(["blockMesh", "-case", str(self.case_dir)], "blockMesh")
     
     def run_surfaceFeatureExtract(self, dictPath):
-        runner = UtilityRunner(argv=["surfaceFeatureExtract", "-case", str(self.case_dir), "-dict", str(dictPath)], silent=False)
-        runner.quiet = False
-        runner.start()
-        runner.run.join()
-        return runner.run.returncode == 0
+        return self._run_with_log(["surfaceFeatureExtract", "-case", str(self.case_dir), "-dict", str(dictPath)], "surfaceFeatureExtract")
     
     def run_snappyHexMesh(self):
-        runner = UtilityRunner(argv=["snappyHexMesh", "-overwrite", "-case", str(self.case_dir)], silent=False)
-        runner.quiet = False
+        return self._run_with_log(["snappyHexMesh", "-overwrite", "-case", str(self.case_dir)], "snappyHexMesh")
         runner.start()
         runner.run.join()
         return runner.run.returncode == 0
