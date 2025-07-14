@@ -14,6 +14,10 @@ from pathlib import Path
 
 
 def calculate_mesh_smoothness(mesh):
+    """
+    Calculate smoothness penalty that only penalizes spiky geometries.
+    Returns 0 for smooth wings, increasing penalty for spiky features.
+    """
     try:
         face_normals = mesh.face_normals
         face_adjacency = mesh.face_adjacency
@@ -28,7 +32,26 @@ def calculate_mesh_smoothness(mesh):
             dot_product = np.clip(np.dot(face1_normal, face2_normal), -1.0, 1.0)
             angle = np.arccos(dot_product)
             angles.append(angle)
-        return np.mean(angles) if angles else 0.0
+        
+        angles = np.array(angles)
+        
+        # Smoothness threshold: angles below this are considered "smooth enough"
+        smooth_threshold = np.pi / 6  # 30 degrees
+        
+        # Only penalize angles above threshold
+        spiky_angles = angles[angles > smooth_threshold]
+        
+        if len(spiky_angles) == 0:
+            return 0.0  # No spiky features, no penalty
+        
+        # Penalty based on: 1) number of spiky edges, 2) severity of spikes
+        spike_severity = np.mean(spiky_angles - smooth_threshold)
+        spike_fraction = len(spiky_angles) / len(angles)
+        
+        # Combined penalty: severity * prevalence
+        smoothness_penalty = spike_severity * spike_fraction
+        
+        return smoothness_penalty
         
     except Exception as e:
         print(f"Smoothness calculation error: {e}")
