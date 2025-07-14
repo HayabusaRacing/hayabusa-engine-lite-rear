@@ -18,6 +18,8 @@ args = parser.parse_args()
 gen_str = "generation" + "{:03}".format(args.gen)
 child_str = "child" + "{:03}".format(args.child)
 
+output_file_name = f"wing_{gen_str}_{child_str}.stl"
+
 path_str = "../results/" + gen_str + "/" + child_str + "/ts.json"
 
 with open(path_str, "r") as f:
@@ -25,4 +27,4 @@ with open(path_str, "r") as f:
 
 bundle = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
 bundle.set_ts(data)
-bundle.export_stl("wing.stl")
+bundle.export_stl(output_file_name)

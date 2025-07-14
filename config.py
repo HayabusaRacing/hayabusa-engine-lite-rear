@@ -24,9 +24,9 @@ MUTATION_RATE = 0.3
 MUTATION_STRENGTH = 0.004
 
 MIN_WING_DIMENSIONS = {
-    'x': 0.02,
-    'y': 0.05,
-    'z': 0.003
+    'x': 0.01,
+    'y': 0.005,
+    'z': 0.002
 }
 
 DIMENSION_PENALTY_WEIGHT = 10000.0
