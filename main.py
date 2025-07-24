@@ -4,15 +4,31 @@ from ga.evaluate import evaluate
 from ga.parallel_evaluate import evaluate_batch_parallel
 from geometry.geometryParams import GeometryParams
 from geometry.rayBundle import RayBundle
+from geometry.airfoilLayers import airfoilLayers
 from utils.logging_utils import setup_logging
 import numpy as np
 import random
 
-from config import MESH_WIDTH, MESH_HEIGHT, MESH_DEPTH, MESH_DENSITY, MESH_CENTER, MESH_UNIT, NUM_GENERATIONS, POPULATION_SIZE, MUTATION_FACTOR, PARALLEL_EVALUATIONS
+from config import (MESH_WIDTH, MESH_HEIGHT, MESH_DEPTH, MESH_DENSITY, MESH_CENTER, MESH_UNIT, 
+                   NUM_GENERATIONS, POPULATION_SIZE, MUTATION_FACTOR, PARALLEL_EVALUATIONS,
+                   USE_AIRFOIL_LAYERS, AIRFOIL_DENSITY, AIRFOIL_WING_SPAN, AIRFOIL_WING_CHORD,
+                   AIRFOIL_SURFACE_DEGREE_U, AIRFOIL_SURFACE_DEGREE_V, AIRFOIL_SAMPLE_RESOLUTION)
 
 def get_ts_length_from_raybundle():
     dummy = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
     return len(dummy.ts)
+
+def get_ts_length_from_airfoil_layers():
+    dummy = airfoilLayers(density=AIRFOIL_DENSITY, wing_span=AIRFOIL_WING_SPAN, wing_chord=AIRFOIL_WING_CHORD,
+                         surface_degree_u=AIRFOIL_SURFACE_DEGREE_U, surface_degree_v=AIRFOIL_SURFACE_DEGREE_V,
+                         sample_resolution=AIRFOIL_SAMPLE_RESOLUTION)
+    return dummy.get_parameter_number()
+
+def get_ts_length():
+    if USE_AIRFOIL_LAYERS:
+        return get_ts_length_from_airfoil_layers()
+    else:
+        return get_ts_length_from_raybundle()
 
 def dummy_evaluate(params):
     try:
@@ -23,11 +39,32 @@ def dummy_evaluate(params):
         print(f"Evaluation error: {e}")
         return float('inf')
 
-TS_LENGTH = get_ts_length_from_raybundle()
+TS_LENGTH = get_ts_length()
 
 def generate_initial_population(ts_length, size):
-    dummy = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
-    base_ts = dummy.ts
+    if USE_AIRFOIL_LAYERS:
+        # For airfoil layers, generate parameters within appropriate bounds
+        dummy = airfoilLayers(density=AIRFOIL_DENSITY, wing_span=AIRFOIL_WING_SPAN, wing_chord=AIRFOIL_WING_CHORD)
+        bounds = dummy.get_parameter_bounds()
+        
+        population = []
+        for _ in range(size):
+            ts = []
+            for i in range(AIRFOIL_DENSITY):
+                # For each layer: [wing_type_idx, pitch_angle, x_offset, z_offset, scale]
+                ts.extend([
+                    random.uniform(bounds['wing_type_idx'][0], bounds['wing_type_idx'][1]),
+                    random.uniform(bounds['pitch_angle'][0], bounds['pitch_angle'][1]),
+                    random.uniform(bounds['x_offset'][0], bounds['x_offset'][1]),
+                    random.uniform(bounds['z_offset'][0], bounds['z_offset'][1]),
+                    random.uniform(bounds['scale'][0], bounds['scale'][1])
+                ])
+            population.append(Individual(ts))
+        return population
+    else:
+        # Original RayBundle method
+        dummy = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
+        base_ts = dummy.ts
     
     population = []
     for i in range(size):

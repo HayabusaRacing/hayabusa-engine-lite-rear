@@ -1,4 +1,5 @@
 from geometry.rayBundle import RayBundle
+from geometry.airfoilLayers import airfoilLayers
 from geometry.geometryParams import GeometryParams
 from foam.setupCase import setup_case
 from foam.runner import OpenFOAMParallelRunner
@@ -6,7 +7,9 @@ from foam.extractCD import extract_latest_cd
 from ga.evaluate import calculate_fitness
 from utils.logging_utils import setup_logging
 from config import (BASE_DIR, CASE_DIR, TMP_DIR, MESH_WIDTH, MESH_HEIGHT, MESH_DEPTH, 
-                   MESH_DENSITY, MESH_CENTER, MESH_UNIT, PARALLEL_EVALUATIONS, CORES_PER_CFD)
+                   MESH_DENSITY, MESH_CENTER, MESH_UNIT, PARALLEL_EVALUATIONS, CORES_PER_CFD,
+                   USE_AIRFOIL_LAYERS, AIRFOIL_DENSITY, AIRFOIL_WING_SPAN, AIRFOIL_WING_CHORD, AIRFOIL_FILES,
+                   AIRFOIL_SURFACE_DEGREE_U, AIRFOIL_SURFACE_DEGREE_V, AIRFOIL_SAMPLE_RESOLUTION)
 
 import trimesh
 import concurrent.futures
@@ -46,13 +49,30 @@ def evaluate_single(params_and_id):
         
         logger.info(f"Case directory created: {case_dir}")
         
-        bundle = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, 
-                          density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
-        bundle.set_ts(params.ts)
-        
-        wing_stl_path = tmp_dir / "wing.stl"
-        bundle.export_stl(wing_stl_path)
-        logger.info(f"Wing STL exported: {wing_stl_path}")
+        if USE_AIRFOIL_LAYERS:
+            # Use airfoilLayers method
+            wing_generator = airfoilLayers(
+                density=AIRFOIL_DENSITY, 
+                wing_span=AIRFOIL_WING_SPAN, 
+                wing_chord=AIRFOIL_WING_CHORD,
+                surface_degree_u=AIRFOIL_SURFACE_DEGREE_U,
+                surface_degree_v=AIRFOIL_SURFACE_DEGREE_V,
+                sample_resolution=AIRFOIL_SAMPLE_RESOLUTION
+            )
+            wing_stl_path = tmp_dir / "wing.stl"
+            wing_generator.create_geometry_from_array(
+                params.ts, AIRFOIL_FILES, str(wing_stl_path)
+            )
+            logger.info(f"Wing STL exported using airfoilLayers: {wing_stl_path}")
+        else:
+            # Use RayBundle method (original)
+            bundle = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, 
+                              density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
+            bundle.set_ts(params.ts)
+            
+            wing_stl_path = tmp_dir / "wing.stl"
+            bundle.export_stl(wing_stl_path)
+            logger.info(f"Wing STL exported using RayBundle: {wing_stl_path}")
         
         mesh_wing = trimesh.load(wing_stl_path)
         mesh_body = trimesh.load(BASE_DIR / "constant" / "triSurface" / "mainBodyNoWing.stl")

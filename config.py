@@ -34,3 +34,15 @@ VOLUME_REWARD_WEIGHT = 50.0
 SMOOTHNESS_REWARD_WEIGHT = 50.0
 CD_WEIGHT = 1000.0
 EXPECTED_VOLUME_RANGE = [1e-6, 1e-4]
+
+# Airfoil Layers Configuration
+AIRFOIL_DENSITY = 3
+AIRFOIL_WING_SPAN = 10.0
+AIRFOIL_WING_CHORD = 2.0
+AIRFOIL_SURFACE_DEGREE_U = 3
+AIRFOIL_SURFACE_DEGREE_V = 2
+AIRFOIL_SAMPLE_RESOLUTION = 40
+AIRFOIL_FILES = ["naca2412.dat"]  # Will be populated when you add more files
+
+# Enable/Disable geometry generation methods
+USE_AIRFOIL_LAYERS = True  # Set to False to use RayBundle method

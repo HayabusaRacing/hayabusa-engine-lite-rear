@@ -1,4 +1,5 @@
 from geometry.rayBundle import RayBundle
+from geometry.airfoilLayers import airfoilLayers
 from geometry.geometryParams import GeometryParams
 from foam.setupCase import setup_case
 from foam.runner import OpenFOAMParallelRunner
@@ -6,7 +7,9 @@ from foam.extractCD import extract_latest_cd
 from config import (BASE_DIR, CASE_DIR, TMP_DIR, MESH_WIDTH, MESH_HEIGHT, MESH_DEPTH, 
                    MESH_DENSITY, MESH_CENTER, MESH_UNIT, MIN_WING_DIMENSIONS,
                    DIMENSION_PENALTY_WEIGHT, VOLUME_REWARD_WEIGHT, SMOOTHNESS_REWARD_WEIGHT, 
-                   CD_WEIGHT, EXPECTED_VOLUME_RANGE)
+                   CD_WEIGHT, EXPECTED_VOLUME_RANGE, USE_AIRFOIL_LAYERS,
+                   AIRFOIL_DENSITY, AIRFOIL_WING_SPAN, AIRFOIL_WING_CHORD, AIRFOIL_FILES,
+                   AIRFOIL_SURFACE_DEGREE_U, AIRFOIL_SURFACE_DEGREE_V, AIRFOIL_SAMPLE_RESOLUTION)
 
 import trimesh
 import numpy as np
@@ -121,10 +124,27 @@ def evaluate(params: GeometryParams) -> float:
     try:
         setup_case(base_dir=BASE_DIR, case_dir=CASE_DIR)
         
-        bundle = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
-        bundle.set_ts(params.ts)
-        bundle.export_stl(TMP_DIR / "wing.stl")
-        mesh_wing = trimesh.load(TMP_DIR / "wing.stl")
+        if USE_AIRFOIL_LAYERS:
+            # Use airfoilLayers method
+            wing_generator = airfoilLayers(
+                density=AIRFOIL_DENSITY, 
+                wing_span=AIRFOIL_WING_SPAN, 
+                wing_chord=AIRFOIL_WING_CHORD,
+                surface_degree_u=AIRFOIL_SURFACE_DEGREE_U,
+                surface_degree_v=AIRFOIL_SURFACE_DEGREE_V,
+                sample_resolution=AIRFOIL_SAMPLE_RESOLUTION
+            )
+            wing_filename = wing_generator.create_geometry_from_array(
+                params.ts, AIRFOIL_FILES, str(TMP_DIR / "wing.stl")
+            )
+            mesh_wing = trimesh.load(wing_filename)
+        else:
+            # Use RayBundle method (original)
+            bundle = RayBundle(width=MESH_WIDTH, height=MESH_HEIGHT, depth=MESH_DEPTH, density=MESH_DENSITY, center=MESH_CENTER, unit=MESH_UNIT)
+            bundle.set_ts(params.ts)
+            bundle.export_stl(TMP_DIR / "wing.stl")
+            mesh_wing = trimesh.load(TMP_DIR / "wing.stl")
+        
         mesh_body = trimesh.load(BASE_DIR / "constant" / "triSurface" / "mainBodyNoWing.stl")
         combined = trimesh.util.concatenate([mesh_body, mesh_wing])
         combined.export(CASE_DIR / "constant" / "triSurface" / "mainBody.stl")
