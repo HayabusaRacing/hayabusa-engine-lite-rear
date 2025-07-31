@@ -6,20 +6,33 @@ import numpy as np
 import struct
 import math
 
+# Import config for fixed center airfoil parameters
+try:
+    from config import AIRFOIL_CENTER_FIXED
+except ImportError:
+    # Fallback if config not available
+    AIRFOIL_CENTER_FIXED = {
+        'wing_type_idx': 0,
+        'pitch_angle': 0.0,
+        'y_offset': 0.0,
+        'z_offset': 0.0,
+        'scale': 1.0
+    }
+
 class geometryParameter:
-    def __init__(self, wing_type, pitch_angle=0.0, x_offset=0.0, z_offset=0.0, scale=1.0):
+    def __init__(self, wing_type, pitch_angle=0.0, y_offset=0.0, z_offset=0.0, scale=1.0):
         self.wing_type = wing_type
         self.pitch_angle = pitch_angle
-        self.x_offset = x_offset
+        self.y_offset = y_offset  # Now adjustable per layer (was x_offset)
         self.z_offset = z_offset
         self.scale = scale
 
 
 class airfoilLayer:
-    def __init__(self, filename, x_offset=0.0, y_offset=0.0, z_offset=0.0, scale=1.0):
+    def __init__(self, filename, y_offset=0.0, x_offset=0.0, z_offset=0.0, scale=1.0):
         self.filename = filename
-        self.x_offset = x_offset
-        self.y_offset = y_offset
+        self.y_offset = y_offset  # Now adjustable per layer (was x_offset)
+        self.x_offset = x_offset  # Now span direction (was y_offset)
         self.z_offset = z_offset
         self.scale = scale
         self.coords = self.load_coords()
@@ -43,7 +56,7 @@ class airfoilLayer:
                 if len(parts) < 2:
                     continue
                 x, z = float(parts[0]), float(parts[1])
-                coords.append([x * self.scale + self.x_offset, self.y_offset, z * self.scale + self.z_offset])
+                coords.append([self.x_offset, x * self.scale + self.y_offset, z * self.scale + self.z_offset])
         return coords
     
     def rotate_pitch(self, angle):
@@ -51,8 +64,8 @@ class airfoilLayer:
         cos_angle, sin_angle = math.cos(angle_rad), math.sin(angle_rad)
         for pt in self.coords:
             x, y, z = pt
-            pt[0] = x * cos_angle - z * sin_angle
-            pt[2] = x * sin_angle + z * cos_angle
+            pt[1] = y * cos_angle - z * sin_angle  # Y becomes the chord direction
+            pt[2] = y * sin_angle + z * cos_angle
         return self.coords
     
     def apply_transformation(self, transformation_matrix):
@@ -63,10 +76,10 @@ class airfoilLayer:
         return self.coords
     
 class airfoilLayers:
-    def __init__(self, density, x_center=0.0, y_center=0.0, z_center=0.0, wing_span=0.0, wing_chord=0.0, 
+    def __init__(self, density, y_center=0.0, x_center=0.0, z_center=0.0, wing_span=0.0, wing_chord=0.0, 
                  surface_degree_u=3, surface_degree_v=2, sample_resolution=40):
-        self.x_center = x_center
-        self.y_center = y_center
+        self.y_center = y_center  # Center in adjustable direction (was x_center)
+        self.x_center = x_center  # Center in span direction (was y_center)
         self.z_center = z_center
         self.wing_span = wing_span
         self.wing_chord = wing_chord
@@ -92,14 +105,14 @@ class airfoilLayers:
         self.layers.clear()
         
         for i, param in enumerate(parameters):
-            y_offset = self.y_center + (self.wing_span / (self.density - 1)) * i
-            layer = self._create_layer(param, y_offset)
+            x_offset = self.x_center + (self.wing_span / (self.density - 1)) * i  # Fixed span spacing
+            layer = self._create_layer(param, x_offset)
             layer.rotate_pitch(param.pitch_angle)
             self.add_layer(layer)
             
             if i != 0:
-                negative_y_offset = self.y_center - (self.wing_span / (self.density - 1)) * i
-                symmetric_layer = self._create_layer(param, negative_y_offset)
+                negative_x_offset = self.x_center - (self.wing_span / (self.density - 1)) * i
+                symmetric_layer = self._create_layer(param, negative_x_offset)
                 symmetric_layer.rotate_pitch(param.pitch_angle)
                 self.add_layer(symmetric_layer, 0)
     
@@ -109,9 +122,12 @@ class airfoilLayers:
         if len(parameters) != self.density:
             raise ValueError(f"Expected {self.density} parameters, got {len(parameters)}")
     
-    def _create_layer(self, param, y_offset):
-        return airfoilLayer(param.wing_type, x_offset=param.x_offset, y_offset=y_offset, 
-                          z_offset=param.z_offset, scale=self.wing_chord * param.scale)
+    def _create_layer(self, param, x_offset):
+        return airfoilLayer(param.wing_type, 
+                          y_offset=param.y_offset + self.y_center,  # Add class-level y_center
+                          x_offset=x_offset, 
+                          z_offset=param.z_offset + self.z_center,  # Add class-level z_center
+                          scale=self.wing_chord * param.scale)
     
     def _create_surface(self):
         sections = [layer.coords for layer in self.layers]
@@ -143,7 +159,8 @@ class airfoilLayers:
         print(f"Closed mesh STL file exported successfully as '{filename}'")
     
     def get_parameter_number(self):
-        return self.density * 5
+        # Only optimize outer layers (indices 1 to density-1), center (index 0) is fixed
+        return (self.density - 1) * 5
 
     def _write_closed_mesh_stl(self, surf, filename):
         surf.evaluate()
@@ -233,21 +250,37 @@ class airfoilLayers:
     def _array_to_parameters(self, param_array, airfoil_files):
         parameters = []
         param_per_layer = 5
+        expected_params = (self.density - 1) * param_per_layer  # Only outer layers are optimized
         
-        if len(param_array) != self.density * param_per_layer:
-            raise ValueError(f"Expected {self.density * param_per_layer} parameters, got {len(param_array)}")
+        if len(param_array) != expected_params:
+            raise ValueError(f"Expected {expected_params} parameters for {self.density-1} optimizable layers, got {len(param_array)}")
         
-        for i in range(self.density):
-            base_idx = i * param_per_layer
+        # Add fixed center airfoil (index 0)
+        center_wing_type = airfoil_files[AIRFOIL_CENTER_FIXED['wing_type_idx'] % len(airfoil_files)]
+        center_param = geometryParameter(
+            center_wing_type,
+            AIRFOIL_CENTER_FIXED['pitch_angle'],
+            AIRFOIL_CENTER_FIXED['y_offset'],
+            AIRFOIL_CENTER_FIXED['z_offset'],
+            AIRFOIL_CENTER_FIXED['scale']
+        )
+        parameters.append(center_param)
+        
+        # Add optimizable outer layers (indices 1 to density-1)
+        for i in range(1, self.density):
+            # Array index for this layer (0-based for param_array since center is not in array)
+            array_layer_idx = i - 1
+            base_idx = array_layer_idx * param_per_layer
+            
             wing_type_idx = int(param_array[base_idx])
             wing_type = airfoil_files[wing_type_idx % len(airfoil_files)]
             
             pitch_angle = param_array[base_idx + 1]
-            x_offset = param_array[base_idx + 2] 
+            y_offset = param_array[base_idx + 2]  # Adjustable per layer
             z_offset = param_array[base_idx + 3]
             scale = param_array[base_idx + 4]
             
-            parameters.append(geometryParameter(wing_type, pitch_angle, x_offset, z_offset, scale))
+            parameters.append(geometryParameter(wing_type, pitch_angle, y_offset, z_offset, scale))
         
         return parameters
     
@@ -255,7 +288,7 @@ class airfoilLayers:
         return {
             'wing_type_idx': (0, 10),
             'pitch_angle': (-15, 15),
-            'x_offset': (-0.5, 0.5),
+            'y_offset': (-0.5, 0.5),  # Now adjustable per layer (was x_offset)
             'z_offset': (-0.2, 0.2),
             'scale': (0.3, 1.5)
         }
@@ -271,7 +304,7 @@ class airfoilLayers:
 if __name__ == "__main__":
     # Example usage - Better parameter grouping
     airfoil_files = ["naca2412.dat"]
-    # Format: [airfoil0, pitch0, x_offset0, z_offset0, scale0, airfoil1, pitch1, x_offset1, z_offset1, scale1, ...]
+    # Format: [airfoil0, pitch0, y_offset0, z_offset0, scale0, airfoil1, pitch1, y_offset1, z_offset1, scale1, ...]
     param_array = [0, 5.0, 0.0, 0.0, 1.0, 0, 10.0, 0.0, 0.0, 0.8, 0, 15.0, 0.0, 0.0, 0.6]
     
     layers = airfoilLayers(density=3, wing_span=10.0, wing_chord=2.0)

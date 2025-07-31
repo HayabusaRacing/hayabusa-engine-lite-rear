@@ -6,13 +6,6 @@ CASE_DIR = Path("/tmp/ramdisk/case")
 TMP_DIR = Path("/tmp/ramdisk/tmp")
 RESULTS_DIR = PROJECT_ROOT / "results"
 
-MESH_WIDTH = 0.07
-MESH_HEIGHT = 0.0255
-MESH_DEPTH = 0.02
-MESH_DENSITY = 5
-MESH_CENTER = [0, -0.0625, 0.015]
-MESH_UNIT = 'm'
-
 POPULATION_SIZE = 50
 NUM_GENERATIONS = 100
 MUTATION_FACTOR = 0.2
@@ -22,6 +15,14 @@ CORES_PER_CFD = 6
 
 MUTATION_RATE = 0.4
 MUTATION_STRENGTH = 0.008
+
+# Parameter-specific mutation scaling
+MUTATION_SCALING = {
+    'pitch_angle': 2.0,      # Pitch angles can handle larger mutations (indices 1, 6, 11...)
+    'y_offset': 0.5,         # Y offsets need smaller mutations (indices 2, 7, 12...)
+    'z_offset': 0.3,         # Z offsets need even smaller mutations (indices 3, 8, 13...)
+    'scale': 1.0             # Scale factors use base strength (indices 4, 9, 14...)
+}
 
 MIN_WING_DIMENSIONS = {
     'x': 0.01,
@@ -37,12 +38,21 @@ EXPECTED_VOLUME_RANGE = [1e-6, 1e-4]
 
 # Airfoil Layers Configuration
 AIRFOIL_DENSITY = 3
-AIRFOIL_WING_SPAN = 10.0
-AIRFOIL_WING_CHORD = 2.0
+AIRFOIL_WING_SPAN = 0.02
+AIRFOIL_WING_CHORD = 0.0255
+AIRFOIL_X_CENTER = 0
+AIRFOIL_Y_CENTER = -0.0625
+AIRFOIL_Z_CENTER = 0.02
 AIRFOIL_SURFACE_DEGREE_U = 3
 AIRFOIL_SURFACE_DEGREE_V = 2
 AIRFOIL_SAMPLE_RESOLUTION = 40
 AIRFOIL_FILES = ["naca2412.dat"]  # Will be populated when you add more files
 
-# Enable/Disable geometry generation methods
-USE_AIRFOIL_LAYERS = True  # Set to False to use RayBundle method
+# Fixed center airfoil configuration (index 0 - not optimized)
+AIRFOIL_CENTER_FIXED = {
+    'wing_type_idx': 0,      # Use first airfoil file
+    'pitch_angle': 0.0,      # No pitch angle for center
+    'y_offset': 0.0,         # No Y offset for center
+    'z_offset': 0.0,         # No Z offset for center  
+    'scale': 1.0             # Full scale for center
+}
