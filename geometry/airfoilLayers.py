@@ -59,13 +59,27 @@ class airfoilLayer:
                 coords.append([self.x_offset, x * self.scale + self.y_offset, z * self.scale + self.z_offset])
         return coords
     
-    def rotate_pitch(self, angle):
+    def rotate_pitch(self, angle, y_center=None, z_center=None):
+        # Rotate around the layer's offset position (default) or specified center
+        if y_center is None:
+            y_center = self.y_offset
+        if z_center is None:
+            z_center = self.z_offset
+            
         angle_rad = math.radians(angle)
         cos_angle, sin_angle = math.cos(angle_rad), math.sin(angle_rad)
+        
         for pt in self.coords:
             x, y, z = pt
-            pt[1] = y * cos_angle - z * sin_angle  # Y becomes the chord direction
-            pt[2] = y * sin_angle + z * cos_angle
+            # Translate to rotation center, rotate, then translate back
+            y_rel = y - y_center
+            z_rel = z - z_center
+            
+            y_rotated = y_rel * cos_angle - z_rel * sin_angle
+            z_rotated = y_rel * sin_angle + z_rel * cos_angle
+            
+            pt[1] = y_rotated + y_center  # Y becomes the chord direction
+            pt[2] = z_rotated + z_center
         return self.coords
     
     def apply_transformation(self, transformation_matrix):

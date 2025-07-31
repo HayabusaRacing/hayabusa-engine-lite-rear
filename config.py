@@ -38,15 +38,15 @@ EXPECTED_VOLUME_RANGE = [1e-6, 1e-4]
 
 # Airfoil Layers Configuration
 AIRFOIL_DENSITY = 3
-AIRFOIL_WING_SPAN = 0.02
-AIRFOIL_WING_CHORD = 0.0255
+AIRFOIL_WING_SPAN = 0.065 / 2
+AIRFOIL_WING_CHORD = 0.02
 AIRFOIL_X_CENTER = 0
-AIRFOIL_Y_CENTER = -0.0625
-AIRFOIL_Z_CENTER = 0.02
+AIRFOIL_Y_CENTER = -0.1075
+AIRFOIL_Z_CENTER = 0.018
 AIRFOIL_SURFACE_DEGREE_U = 3
 AIRFOIL_SURFACE_DEGREE_V = 2
 AIRFOIL_SAMPLE_RESOLUTION = 40
-AIRFOIL_FILES = ["naca2412.dat"]  # Will be populated when you add more files
+AIRFOIL_FILES = ["lorentz_teardrop.dat"]  # Will be populated when you add more files
 
 # Fixed center airfoil configuration (index 0 - not optimized)
 AIRFOIL_CENTER_FIXED = {

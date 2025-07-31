@@ -29,8 +29,8 @@ def generate_wing_and_combine():
     
     # Test parameters for 2 outer layers (10 parameters total)
     test_params = [
-        0, 0.0, 0.005, 0.005, 1,  # Layer 1: wing_type, pitch, y_offset, z_offset, scale
-        0, 0.0, 0.010, 0.010, 1   # Layer 2: wing_type, pitch, y_offset, z_offset, scale
+        0, 15, 0.0, 0.0, 1,  # Layer 1: wing_type, pitch, y_offset, z_offset, scale
+        0, 25, 0.0, 0.0, 1   # Layer 2: wing_type, pitch, y_offset, z_offset, scale
     ]
     
     print(f"Using test parameters: {test_params}")
@@ -60,10 +60,14 @@ def generate_wing_and_combine():
         # Step 3: Load meshes using trimesh (same as ga/evaluate.py)
         mesh_wing = trimesh.load(wing_filename)
         mesh_body = trimesh.load(PROJECT_ROOT / "baseCase" / "constant" / "triSurface" / "mainBodyNoWing.stl")
+        FL = trimesh.load(PROJECT_ROOT / "baseCase" / "constant" / "triSurface" / "FL.stl")
+        FR = trimesh.load(PROJECT_ROOT / "baseCase" / "constant" / "triSurface" / "FR.stl")
+        RL = trimesh.load(PROJECT_ROOT / "baseCase" / "constant" / "triSurface" / "RL.stl")
+        RR = trimesh.load(PROJECT_ROOT / "baseCase" / "constant" / "triSurface" / "RR.stl")
         
         # Step 4: Combine meshes
-        combined = trimesh.util.concatenate([mesh_body, mesh_wing])
-        
+        combined = trimesh.util.concatenate([mesh_body, mesh_wing, FL, FR, RL, RR])
+
         # Step 5: Export combined aircraft
         output_path = "complete_aircraft.stl"
         combined.export(output_path)
