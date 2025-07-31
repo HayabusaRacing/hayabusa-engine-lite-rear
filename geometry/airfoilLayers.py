@@ -299,12 +299,21 @@ class airfoilLayers:
         return parameters
     
     def get_parameter_bounds(self):
+        # Scale bounds relative to wing dimensions for realistic mutations
+        # Y-offset should be a fraction of chord length
+        # Z-offset should be a fraction of span length
+        chord_fraction = 0.1  # Allow ±10% of chord length movement
+        span_fraction = 0.2   # Allow ±20% of span length movement
+        
+        max_y_offset = self.wing_chord * chord_fraction
+        max_z_offset = self.wing_span * span_fraction
+        
         return {
-            'wing_type_idx': (0, 10),
-            'pitch_angle': (-15, 15),
-            'y_offset': (-0.5, 0.5),  # Now adjustable per layer (was x_offset)
-            'z_offset': (-0.2, 0.2),
-            'scale': (0.3, 1.5)
+            'wing_type_idx': (0, 5),        # Conservative airfoil type range
+            'pitch_angle': (-10, 10),       # Reasonable pitch range for small wings
+            'y_offset': (-max_y_offset, max_y_offset),  # Scaled to chord
+            'z_offset': (-max_z_offset, max_z_offset),  # Scaled to span  
+            'scale': (0.5, 1.2)             # Conservative scale range
         }
     
     def get_array_size(self):
