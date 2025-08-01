@@ -8,20 +8,20 @@ RESULTS_DIR = PROJECT_ROOT / "results"
 
 POPULATION_SIZE = 50
 NUM_GENERATIONS = 100
-MUTATION_FACTOR = 0.2
+MUTATION_FACTOR = 0.4     # Increased from 0.2 for more aggressive evolution
 
 PARALLEL_EVALUATIONS = 5
 CORES_PER_CFD = 6
 
-MUTATION_RATE = 0.4
-MUTATION_STRENGTH = 0.008
+MUTATION_RATE = 0.7       # Increased from 0.4 for more exploration
+MUTATION_STRENGTH = 0.025  # Increased from 0.008 for stronger mutations
 
-# Parameter-specific mutation scaling
+# Parameter-specific mutation scaling (adjusted for stronger exploration)
 MUTATION_SCALING = {
-    'pitch_angle': 2.0,      # Pitch angles can handle larger mutations (indices 1, 6, 11...)
-    'y_offset': 0.5,         # Y offsets need smaller mutations (indices 2, 7, 12...)
-    'z_offset': 0.3,         # Z offsets need even smaller mutations (indices 3, 8, 13...)
-    'scale': 1.0             # Scale factors use base strength (indices 4, 9, 14...)
+    'pitch_angle': 3.0,      # Increased from 2.0 - pitch angles can handle larger mutations
+    'y_offset': 1.0,         # Increased from 0.5 - need more y-direction exploration  
+    'z_offset': 0.8,         # Increased from 0.3 - need more z-direction exploration
+    'scale': 1.5             # Increased from 1.0 - allow more scale variation
 }
 
 MIN_WING_DIMENSIONS = {
