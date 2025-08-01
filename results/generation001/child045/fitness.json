@@ -1,0 +1,12 @@
+{
+  "Cd": 0.001523587,
+  "volume": 6.4994267995908295e-06,
+  "volume_source": "bounding_box",
+  "smoothness": 0.009923725100055163,
+  "dimension_penalty": 0.0,
+  "drag_component": 0.001523587,
+  "volume_component": 0.0,
+  "smoothness_component": 0.0,
+  "dimension_component": 0.0,
+  "total_fitness": 0.001523587
+}
