@@ -46,7 +46,7 @@ AIRFOIL_Z_CENTER = 0.018
 AIRFOIL_SURFACE_DEGREE_U = 3
 AIRFOIL_SURFACE_DEGREE_V = 2
 AIRFOIL_SAMPLE_RESOLUTION = 40
-AIRFOIL_FILES = ["lorentz_teardrop.dat"]  # Will be populated when you add more files
+AIRFOIL_FILES = ["lorentz_teardrop.dat", "naca0012.dat", "e387.dat", "mh45.dat", "sd77032.dat"]  # Will be populated when you add more files
 
 # Fixed center airfoil configuration (index 0 - not optimized)
 AIRFOIL_CENTER_FIXED = {
