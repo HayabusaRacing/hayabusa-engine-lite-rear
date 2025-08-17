@@ -48,6 +48,8 @@ class airfoilLayer:
             project_root = Path(__file__).resolve().parent.parent
             filepath = project_root / self.filename
         
+        raw_coords = []
+        
         with open(filepath, 'r') as f:
             for line in f:
                 if line.strip() == "" or line.strip().startswith('#'):
@@ -56,7 +58,37 @@ class airfoilLayer:
                 if len(parts) < 2:
                     continue
                 x, z = float(parts[0]), float(parts[1])
-                coords.append([self.x_offset, x * self.scale + self.y_offset, z * self.scale + self.z_offset])
+                raw_coords.append([self.x_offset, x * self.scale + self.y_offset, z * self.scale + self.z_offset])
+
+        min_z = min(pt[1] for pt in raw_coords)
+        max_z = max(pt[1] for pt in raw_coords)
+        current_thickness = (max_z - min_z)
+
+        chord_meters = self.scale
+        target_thickness_normalized = 0.003 / chord_meters
+
+        thickness_scale_factor = target_thickness_normalized / current_thickness if current_thickness > 0 else 1.0
+
+        with open(filepath, 'r') as f:
+            for line in f:
+                if line.strip() == "" or line.strip().startswith('#'):
+                    continue
+                parts = line.strip().split()
+                if len(parts) < 2:
+                    continue
+                x, z = float(parts[0]), float(parts[1])
+
+                # Apply vertical scaling to achieve 3mm thickness
+                z_midpoint = (max_z + min_z) / 2  # Find center line
+                z_adjusted = (z - z_midpoint) * thickness_scale_factor + z_midpoint  # Scale around midpoint
+
+                # Apply normal transformations
+                coords.append([
+                    self.x_offset, 
+                    x * self.scale + self.y_offset, 
+                    z_adjusted * self.scale + self.z_offset
+                ])
+        
         return coords
     
     def rotate_pitch(self, angle, y_center=None, z_center=None):
@@ -299,21 +331,21 @@ class airfoilLayers:
         return parameters
     
     def get_parameter_bounds(self):
-        # Scale bounds relative to wing dimensions for realistic mutations
-        # Y-offset should be a fraction of chord length
-        # Z-offset should be a fraction of span length
-        chord_fraction = 0.1  # Allow ±10% of chord length movement
-        span_fraction = 0.2   # Allow ±20% of span length movement
+        # Import direct physical unit bounds from config
+        from config import PARAM_BOUNDS, AIRFOIL_FILES
         
-        max_y_offset = self.wing_chord * chord_fraction
-        max_z_offset = self.wing_span * span_fraction
+        # Convert mm to meters for internal calculations
+        y_offset_min = PARAM_BOUNDS['Y_OFFSET_MIN_MM'] / 1000
+        y_offset_max = PARAM_BOUNDS['Y_OFFSET_MAX_MM'] / 1000
+        z_offset_min = PARAM_BOUNDS['Z_OFFSET_MIN_MM'] / 1000
+        z_offset_max = PARAM_BOUNDS['Z_OFFSET_MAX_MM'] / 1000
         
         return {
-            'wing_type_idx': (0, 5),        # Conservative airfoil type range
-            'pitch_angle': (-10, 10),       # Reasonable pitch range for small wings
-            'y_offset': (-max_y_offset, max_y_offset),  # Scaled to chord
-            'z_offset': (-max_z_offset, max_z_offset),  # Scaled to span  
-            'scale': (0.5, 1.2)             # Conservative scale range
+            'wing_type_idx': (0, len(AIRFOIL_FILES) - 1),  # Dynamic based on available files
+            'pitch_angle': (PARAM_BOUNDS['PITCH_ANGLE_MIN'], PARAM_BOUNDS['PITCH_ANGLE_MAX']),
+            'y_offset': (y_offset_min, y_offset_max),      # Asymmetric bounds in meters
+            'z_offset': (z_offset_min, z_offset_max),      # Asymmetric bounds in meters
+            'scale': (PARAM_BOUNDS['SCALE_MIN'], PARAM_BOUNDS['SCALE_MAX'])
         }
     
     def get_array_size(self):
