@@ -76,6 +76,8 @@ def test_airfoil_thickness():
                 wing_chord=AIRFOIL_WING_CHORD
             )
             wing.create_geometry_from_array(param_array, AIRFOIL_FILES, str(stl_path))
+
+            wing.visualize_airfoils("debug_airfoils.png")
             
             # Measure the thickness
             thickness = measure_thickness(stl_path)

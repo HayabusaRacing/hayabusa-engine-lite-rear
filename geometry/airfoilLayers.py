@@ -48,8 +48,6 @@ class airfoilLayer:
             project_root = Path(__file__).resolve().parent.parent
             filepath = project_root / self.filename
         
-        raw_coords = []
-        
         with open(filepath, 'r') as f:
             for line in f:
                 if line.strip() == "" or line.strip().startswith('#'):
@@ -58,42 +56,8 @@ class airfoilLayer:
                 if len(parts) < 2:
                     continue
                 x, z = float(parts[0]), float(parts[1])
-                raw_coords.append([self.x_offset, x * self.scale + self.y_offset, z * self.scale + self.z_offset])
-
-        # Check the min_z and max_z calculation
-        min_z = min(pt[2] for pt in raw_coords)  # Should be using index 2, not 1
-        max_z = max(pt[2] for pt in raw_coords)  # Should be using index 2, not 1
-        
-        # Check how the thickness calculation is done
-        current_thickness = max_z - min_z  # This is in absolute units, not normalized
-        
-        # Check how the target thickness is calculated
-        chord_meters = self.scale
-        target_thickness = 0.003  # Directly use 3mm in meters
-        
-        # Calculate vertical scaling factor
-        thickness_scale_factor = target_thickness / current_thickness
-        
-        with open(filepath, 'r') as f:
-            for line in f:
-                if line.strip() == "" or line.strip().startswith('#'):
-                    continue
-                parts = line.strip().split()
-                if len(parts) < 2:
-                    continue
-                x, z = float(parts[0]), float(parts[1])
-
-                # Apply vertical scaling to achieve 3mm thickness
-                z_midpoint = (max_z + min_z) / 2  # Find center line
-                z_adjusted = (z - z_midpoint) * thickness_scale_factor + z_midpoint  # Scale around midpoint
-
-                # Apply normal transformations
-                coords.append([
-                    self.x_offset, 
-                    x * self.scale + self.y_offset, 
-                    z_adjusted * self.scale + self.z_offset
-                ])
-        
+                coords.append([self.x_offset, x * self.scale + self.y_offset, z * self.scale + self.z_offset])
+        coords = airfoilLayer.resample_points(coords, num_points=50)
         return coords
     
     def rotate_pitch(self, angle, y_center=None, z_center=None):
@@ -125,6 +89,71 @@ class airfoilLayer:
             transformed = transformation_matrix @ pt_homogeneous
             self.coords[i] = transformed[:3].tolist()
         return self.coords
+    
+    @staticmethod
+    def resample_points(coords, num_points=100):
+        """Resample airfoil with properly closed trailing edge"""
+        import numpy as np
+
+        if len(coords) < 3:
+            return coords
+
+        # Find trailing edge - usually the point with max X (or maybe both first and last points)
+        x_values = [p[1] for p in coords]  # Y-coordinate holds the chord direction
+        max_x_idx = x_values.index(max(x_values))
+
+        # Reorder points to start and end at trailing edge if needed
+        if max_x_idx != 0 and max_x_idx != len(coords)-1:
+            coords = coords[max_x_idx:] + coords[:max_x_idx]
+
+        # Find leading edge (minimum Y)
+        x_values = [p[1] for p in coords]
+        min_x_idx = x_values.index(min(x_values))
+
+        # Calculate distances as before...
+        distances = [0.0]
+        for i in range(1, len(coords)):
+            p1 = np.array(coords[i-1])
+            p2 = np.array(coords[i])
+            distances.append(distances[-1] + np.linalg.norm(p2 - p1))
+
+        total_length = distances[-1]
+        if total_length == 0:
+            return coords
+
+        # Create new points, but reserve first and last for exact trailing edge
+        new_coords = []
+
+        # First point is trailing edge
+        new_coords.append(list(coords[0]))
+
+        # Middle points - use num_points-2 since we're adding TE points manually
+        for i in range(1, num_points-1):
+            target_dist = total_length * i / (num_points - 1)
+
+            # Find the segment
+            idx = 0
+            while idx < len(distances)-1 and distances[idx+1] < target_dist:
+                idx += 1
+
+            if idx >= len(distances)-1:
+                continue
+
+            segment_length = distances[idx+1] - distances[idx]
+            if segment_length > 0:
+                t = (target_dist - distances[idx]) / segment_length
+            else:
+                t = 0
+
+            p1 = np.array(coords[idx])
+            p2 = np.array(coords[idx+1])
+            new_point = p1 + t * (p2 - p1)
+            new_coords.append(new_point.tolist())
+
+        # Last point MUST match first for closed trailing edge
+        new_coords.append(list(new_coords[0]))
+
+        return new_coords
     
 class airfoilLayers:
     def __init__(self, density, y_center=0.0, x_center=0.0, z_center=0.0, wing_span=0.0, wing_chord=0.0, 
@@ -181,6 +210,10 @@ class airfoilLayers:
                           scale=self.wing_chord * param.scale)
     
     def _create_surface(self):
+        print("\n[DEBUG] Layer point counts before surface creation:")
+        for i, layer in enumerate(self.layers):
+            import os
+            print(f"Layer {i} ({os.path.basename(layer.filename)}): {len(layer.coords)} points")
         sections = [layer.coords for layer in self.layers]
         ctrlpts2d = list(map(list, zip(*sections)))
         ctrlpts_flat = [pt for row in ctrlpts2d for pt in row]
@@ -336,21 +369,21 @@ class airfoilLayers:
         return parameters
     
     def get_parameter_bounds(self):
-        # Import direct physical unit bounds from config
-        from config import PARAM_BOUNDS, AIRFOIL_FILES
+        # Scale bounds relative to wing dimensions for realistic mutations
+        # Y-offset should be a fraction of chord length
+        # Z-offset should be a fraction of span length
+        chord_fraction = 0.1  # Allow ±10% of chord length movement
+        span_fraction = 0.2   # Allow ±20% of span length movement
         
-        # Convert mm to meters for internal calculations
-        y_offset_min = PARAM_BOUNDS['Y_OFFSET_MIN_MM'] / 1000
-        y_offset_max = PARAM_BOUNDS['Y_OFFSET_MAX_MM'] / 1000
-        z_offset_min = PARAM_BOUNDS['Z_OFFSET_MIN_MM'] / 1000
-        z_offset_max = PARAM_BOUNDS['Z_OFFSET_MAX_MM'] / 1000
+        max_y_offset = self.wing_chord * chord_fraction
+        max_z_offset = self.wing_span * span_fraction
         
         return {
-            'wing_type_idx': (0, len(AIRFOIL_FILES) - 1),  # Dynamic based on available files
-            'pitch_angle': (PARAM_BOUNDS['PITCH_ANGLE_MIN'], PARAM_BOUNDS['PITCH_ANGLE_MAX']),
-            'y_offset': (y_offset_min, y_offset_max),      # Asymmetric bounds in meters
-            'z_offset': (z_offset_min, z_offset_max),      # Asymmetric bounds in meters
-            'scale': (PARAM_BOUNDS['SCALE_MIN'], PARAM_BOUNDS['SCALE_MAX'])
+            'wing_type_idx': (0, 5),        # Conservative airfoil type range
+            'pitch_angle': (-10, 10),       # Reasonable pitch range for small wings
+            'y_offset': (-max_y_offset, max_y_offset),  # Scaled to chord
+            'z_offset': (-max_z_offset, max_z_offset),  # Scaled to span  
+            'scale': (0.5, 1.2)             # Conservative scale range
         }
     
     def get_array_size(self):
@@ -360,6 +393,140 @@ class airfoilLayers:
     def quick_generate(param_array, airfoil_files, density=3, wing_span=1.0, wing_chord=0.5, output_filename="wing.stl"):
         wing = airfoilLayers(density=density, wing_span=wing_span, wing_chord=wing_chord)
         return wing.create_geometry_from_array(param_array, airfoil_files, output_filename)
+    
+    def visualize_airfoils(self, output_file=None):
+        """Generate detailed visualizations of all airfoil layers for debugging"""
+        import matplotlib.pyplot as plt
+        from matplotlib.path import Path
+        import matplotlib.patches as patches
+        import os
+        import numpy as np
+        
+        n_layers = len(self.layers)
+        if n_layers == 0:
+            print("No layers to visualize")
+            return
+        
+        # Create figure with subplots - one row per layer
+        fig, axes = plt.subplots(n_layers, 2, figsize=(15, 4*n_layers))
+        if n_layers == 1:
+            axes = [axes]  # Make it 2D for consistent indexing
+            
+        # Plot each layer
+        for i, layer in enumerate(self.layers):
+            coords = layer.coords
+            if not coords:
+                continue
+                
+            # Get layer name from filename
+            layer_name = os.path.basename(layer.filename)
+            
+            # Extract coordinates for easier plotting
+            x_span = [p[0] for p in coords]
+            y_chord = [p[1] for p in coords]
+            z_height = [p[2] for p in coords]
+            
+            # Find special points
+            min_y_idx = y_chord.index(min(y_chord))  # Leading edge
+            max_y_idx = y_chord.index(max(y_chord))  # Trailing edge (possibly)
+            
+            # 1. SIDE VIEW - airfoil profile (Y-Z plane)
+            ax1 = axes[i][0]
+            
+            # Plot the airfoil profile
+            ax1.plot(y_chord, z_height, 'b-', linewidth=1, alpha=0.7)
+            ax1.scatter(y_chord, z_height, c=range(len(coords)), cmap='viridis', 
+                       s=50, zorder=5, alpha=0.7)
+            
+            # Mark first and last points
+            ax1.plot(y_chord[0], z_height[0], 'go', markersize=10, label='First Point')
+            ax1.plot(y_chord[-1], z_height[-1], 'ro', markersize=10, label='Last Point')
+            
+            # Mark leading edge
+            ax1.plot(y_chord[min_y_idx], z_height[min_y_idx], 'co', markersize=10, label='Leading Edge')
+            
+            # Show direction with arrows
+            for j in range(0, len(coords)-1, max(1, len(coords)//10)):
+                ax1.annotate("", xy=(y_chord[j+1], z_height[j+1]), 
+                            xytext=(y_chord[j], z_height[j]),
+                            arrowprops=dict(arrowstyle="->", color='r', lw=1.5))
+            
+            # Check if first and last points match
+            te_distance = np.linalg.norm(np.array([y_chord[0], z_height[0]]) - 
+                                         np.array([y_chord[-1], z_height[-1]]))
+            
+            ax1.set_title(f"Layer {i}: {layer_name}\nTE Gap: {te_distance:.6f}")
+            ax1.set_xlabel('Chord (Y)')
+            ax1.set_ylabel('Height (Z)')
+            ax1.grid(True, alpha=0.3)
+            ax1.legend()
+            
+            # Add point indices at regular intervals
+            for j in range(0, len(coords), max(1, len(coords)//5)):
+                ax1.annotate(f"{j}", (y_chord[j], z_height[j]),
+                            xytext=(5, 5), textcoords='offset points')
+            
+            # 2. TOP VIEW - span distribution (X-Y plane)
+            ax2 = axes[i][1]
+            
+            # Plot the points from top view
+            ax2.plot(x_span, y_chord, 'b-', linewidth=1, alpha=0.7)
+            ax2.scatter(x_span, y_chord, c=range(len(coords)), cmap='viridis', 
+                       s=50, zorder=5, alpha=0.7)
+            
+            # Mark first and last points
+            ax2.plot(x_span[0], y_chord[0], 'go', markersize=10, label='First Point')
+            ax2.plot(x_span[-1], y_chord[-1], 'ro', markersize=10, label='Last Point')
+            
+            # Mark leading edge
+            ax2.plot(x_span[min_y_idx], y_chord[min_y_idx], 'co', markersize=10, label='Leading Edge')
+            
+            ax2.set_title(f"Top View (X-Y) - Layer {i}")
+            ax2.set_xlabel('Span (X)')
+            ax2.set_ylabel('Chord (Y)')
+            ax2.grid(True, alpha=0.3)
+            ax2.legend()
+            
+            # Add point indices at regular intervals
+            for j in range(0, len(coords), max(1, len(coords)//5)):
+                ax2.annotate(f"{j}", (x_span[j], y_chord[j]),
+                            xytext=(5, 5), textcoords='offset points')
+        
+        # Print detailed stats
+        print("\n==== AIRFOIL DEBUG INFORMATION ====")
+        print(f"Number of layers: {n_layers}")
+        
+        for i, layer in enumerate(self.layers):
+            coords = layer.coords
+            if not coords:
+                continue
+                
+            y_chord = [p[1] for p in coords]
+            min_y_idx = y_chord.index(min(y_chord))
+            max_y_idx = y_chord.index(max(y_chord))
+            
+            print(f"\nLayer {i} ({os.path.basename(layer.filename)}):")
+            print(f"  Total points: {len(coords)}")
+            print(f"  First point (idx 0): {coords[0]}")
+            print(f"  Leading edge (idx {min_y_idx}): {coords[min_y_idx]}")
+            if max_y_idx != 0 and max_y_idx != len(coords)-1:
+                print(f"  Max Y point (idx {max_y_idx}): {coords[max_y_idx]}")
+            print(f"  Last point (idx {len(coords)-1}): {coords[-1]}")
+            
+            # Check trailing edge closure
+            te_distance = np.linalg.norm(np.array(coords[0]) - np.array(coords[-1]))
+            if te_distance > 1e-6:
+                print(f"  WARNING: Trailing edge not closed! Gap = {te_distance:.8f}")
+            else:
+                print(f"  Trailing edge properly closed: Gap = {te_distance:.8f}")
+        
+        plt.tight_layout()
+        
+        if output_file:
+            plt.savefig(output_file)
+            print(f"Debug visualization saved to {output_file}")
+        else:
+            plt.show()
 
 if __name__ == "__main__":
     # Example usage - Better parameter grouping
