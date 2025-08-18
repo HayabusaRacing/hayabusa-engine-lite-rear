@@ -219,3 +219,5 @@ case/
 /.pyFoam/
 
 .python_history
+
+/results/
