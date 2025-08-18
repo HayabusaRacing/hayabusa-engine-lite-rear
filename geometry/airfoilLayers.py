@@ -60,15 +60,20 @@ class airfoilLayer:
                 x, z = float(parts[0]), float(parts[1])
                 raw_coords.append([self.x_offset, x * self.scale + self.y_offset, z * self.scale + self.z_offset])
 
-        min_z = min(pt[1] for pt in raw_coords)
-        max_z = max(pt[1] for pt in raw_coords)
-        current_thickness = (max_z - min_z)
-
+        # Check the min_z and max_z calculation
+        min_z = min(pt[2] for pt in raw_coords)  # Should be using index 2, not 1
+        max_z = max(pt[2] for pt in raw_coords)  # Should be using index 2, not 1
+        
+        # Check how the thickness calculation is done
+        current_thickness = max_z - min_z  # This is in absolute units, not normalized
+        
+        # Check how the target thickness is calculated
         chord_meters = self.scale
-        target_thickness_normalized = 0.003 / chord_meters
-
-        thickness_scale_factor = target_thickness_normalized / current_thickness if current_thickness > 0 else 1.0
-
+        target_thickness = 0.003  # Directly use 3mm in meters
+        
+        # Calculate vertical scaling factor
+        thickness_scale_factor = target_thickness / current_thickness
+        
         with open(filepath, 'r') as f:
             for line in f:
                 if line.strip() == "" or line.strip().startswith('#'):
