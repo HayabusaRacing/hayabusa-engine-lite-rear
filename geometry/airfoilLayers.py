@@ -47,7 +47,7 @@ class airfoilLayer:
             from pathlib import Path
             project_root = Path(__file__).resolve().parent.parent
             filepath = project_root / self.filename
-        
+
         with open(filepath, 'r') as f:
             for line in f:
                 if line.strip() == "" or line.strip().startswith('#'):
@@ -57,7 +57,30 @@ class airfoilLayer:
                     continue
                 x, z = float(parts[0]), float(parts[1])
                 coords.append([self.x_offset, x * self.scale + self.y_offset, z * self.scale + self.z_offset])
-        coords = airfoilLayer.resample_points(coords, num_points=50)
+
+        # Resample for uniform point distribution
+        coords = airfoilLayer.resample_points(coords, num_points=100)
+
+        # Adjust thickness to fixed 3mm (0.003 units)
+        target_thickness = 0.003
+
+        # Get current z range (thickness)
+        z_values = [pt[2] for pt in coords]
+        min_z = min(z_values)
+        max_z = max(z_values)
+        current_thickness = max_z - min_z
+
+        # Calculate scaling factor
+        if current_thickness > 1e-6:  # Avoid division by zero
+            # Find z-center of the airfoil
+            z_center = (max_z + min_z) / 2
+            scale_factor = target_thickness / current_thickness
+
+            # Scale z-coordinates around the center
+            for pt in coords:
+                # Shift to center, scale, shift back
+                pt[2] = (pt[2] - z_center) * scale_factor + z_center
+
         return coords
     
     def rotate_pitch(self, angle, y_center=None, z_center=None):
@@ -401,110 +424,110 @@ class airfoilLayers:
         import matplotlib.patches as patches
         import os
         import numpy as np
-        
+
         n_layers = len(self.layers)
         if n_layers == 0:
             print("No layers to visualize")
             return
-        
+
         # Create figure with subplots - one row per layer
         fig, axes = plt.subplots(n_layers, 2, figsize=(15, 4*n_layers))
         if n_layers == 1:
             axes = [axes]  # Make it 2D for consistent indexing
-            
+
         # Plot each layer
         for i, layer in enumerate(self.layers):
             coords = layer.coords
             if not coords:
                 continue
-                
+
             # Get layer name from filename
             layer_name = os.path.basename(layer.filename)
-            
+
             # Extract coordinates for easier plotting
             x_span = [p[0] for p in coords]
             y_chord = [p[1] for p in coords]
             z_height = [p[2] for p in coords]
-            
+
             # Find special points
             min_y_idx = y_chord.index(min(y_chord))  # Leading edge
             max_y_idx = y_chord.index(max(y_chord))  # Trailing edge (possibly)
-            
+
             # 1. SIDE VIEW - airfoil profile (Y-Z plane)
             ax1 = axes[i][0]
-            
+
             # Plot the airfoil profile
             ax1.plot(y_chord, z_height, 'b-', linewidth=1, alpha=0.7)
             ax1.scatter(y_chord, z_height, c=range(len(coords)), cmap='viridis', 
                        s=50, zorder=5, alpha=0.7)
-            
+
             # Mark first and last points
             ax1.plot(y_chord[0], z_height[0], 'go', markersize=10, label='First Point')
             ax1.plot(y_chord[-1], z_height[-1], 'ro', markersize=10, label='Last Point')
-            
+
             # Mark leading edge
             ax1.plot(y_chord[min_y_idx], z_height[min_y_idx], 'co', markersize=10, label='Leading Edge')
-            
+
             # Show direction with arrows
             for j in range(0, len(coords)-1, max(1, len(coords)//10)):
                 ax1.annotate("", xy=(y_chord[j+1], z_height[j+1]), 
                             xytext=(y_chord[j], z_height[j]),
                             arrowprops=dict(arrowstyle="->", color='r', lw=1.5))
-            
+
             # Check if first and last points match
             te_distance = np.linalg.norm(np.array([y_chord[0], z_height[0]]) - 
                                          np.array([y_chord[-1], z_height[-1]]))
-            
+
             ax1.set_title(f"Layer {i}: {layer_name}\nTE Gap: {te_distance:.6f}")
             ax1.set_xlabel('Chord (Y)')
             ax1.set_ylabel('Height (Z)')
             ax1.grid(True, alpha=0.3)
             ax1.legend()
-            
+
             # Add point indices at regular intervals
             for j in range(0, len(coords), max(1, len(coords)//5)):
                 ax1.annotate(f"{j}", (y_chord[j], z_height[j]),
                             xytext=(5, 5), textcoords='offset points')
-            
+
             # 2. TOP VIEW - span distribution (X-Y plane)
             ax2 = axes[i][1]
-            
+
             # Plot the points from top view
             ax2.plot(x_span, y_chord, 'b-', linewidth=1, alpha=0.7)
             ax2.scatter(x_span, y_chord, c=range(len(coords)), cmap='viridis', 
                        s=50, zorder=5, alpha=0.7)
-            
+
             # Mark first and last points
             ax2.plot(x_span[0], y_chord[0], 'go', markersize=10, label='First Point')
             ax2.plot(x_span[-1], y_chord[-1], 'ro', markersize=10, label='Last Point')
-            
+
             # Mark leading edge
             ax2.plot(x_span[min_y_idx], y_chord[min_y_idx], 'co', markersize=10, label='Leading Edge')
-            
+
             ax2.set_title(f"Top View (X-Y) - Layer {i}")
             ax2.set_xlabel('Span (X)')
             ax2.set_ylabel('Chord (Y)')
             ax2.grid(True, alpha=0.3)
             ax2.legend()
-            
+
             # Add point indices at regular intervals
             for j in range(0, len(coords), max(1, len(coords)//5)):
                 ax2.annotate(f"{j}", (x_span[j], y_chord[j]),
                             xytext=(5, 5), textcoords='offset points')
-        
+
         # Print detailed stats
         print("\n==== AIRFOIL DEBUG INFORMATION ====")
         print(f"Number of layers: {n_layers}")
-        
+
         for i, layer in enumerate(self.layers):
             coords = layer.coords
             if not coords:
                 continue
-                
+
             y_chord = [p[1] for p in coords]
             min_y_idx = y_chord.index(min(y_chord))
             max_y_idx = y_chord.index(max(y_chord))
-            
+
             print(f"\nLayer {i} ({os.path.basename(layer.filename)}):")
             print(f"  Total points: {len(coords)}")
             print(f"  First point (idx 0): {coords[0]}")
@@ -512,16 +535,16 @@ class airfoilLayers:
             if max_y_idx != 0 and max_y_idx != len(coords)-1:
                 print(f"  Max Y point (idx {max_y_idx}): {coords[max_y_idx]}")
             print(f"  Last point (idx {len(coords)-1}): {coords[-1]}")
-            
+
             # Check trailing edge closure
             te_distance = np.linalg.norm(np.array(coords[0]) - np.array(coords[-1]))
             if te_distance > 1e-6:
                 print(f"  WARNING: Trailing edge not closed! Gap = {te_distance:.8f}")
             else:
                 print(f"  Trailing edge properly closed: Gap = {te_distance:.8f}")
-        
+
         plt.tight_layout()
-        
+
         if output_file:
             plt.savefig(output_file)
             print(f"Debug visualization saved to {output_file}")
