@@ -46,7 +46,7 @@ def generate_initial_population(ts_length, size):
         for i in range(1, AIRFOIL_DENSITY):
             # For each optimizable layer: [wing_type_idx, pitch_angle, y_offset, z_offset, scale]
             ts.extend([
-                random.uniform(bounds['wing_type_idx'][0], bounds['wing_type_idx'][1]),
+                random.uniform(int(round(bounds['wing_type_idx'][0])), int(round(bounds['wing_type_idx'][1]))),
                 random.uniform(bounds['pitch_angle'][0], bounds['pitch_angle'][1]),
                 random.uniform(bounds['y_offset'][0], bounds['y_offset'][1]),
                 random.uniform(bounds['z_offset'][0], bounds['z_offset'][1]),
