@@ -551,7 +551,75 @@ class airfoilLayers:
         else:
             plt.show()
 
+def calculate_bounding_box_trimesh(points):
+    """
+    Calculate the bounding box for a set of 3D points using trimesh.
+    
+    Args:
+        points: List of [x, y, z] coordinates
+    
+    Returns:
+        A trimesh object representing the bounding box
+    """
+    # Create a Trimesh object from the points
+    cloud = trimesh.points.PointCloud(points)
+    
+    # Get the bounding box as a Trimesh object
+    bounding_box = cloud.bounding_box
+    return bounding_box
+
+def save_stl(mesh, filename):
+    """
+    Save a trimesh object as an STL file.
+    
+    Args:
+        mesh: A trimesh object
+        filename: Output STL file name
+    """
+    mesh.export(filename)
+    print(f"STL saved as '{filename}'")
+
+def main():
+    # Configuration
+    output_dir = Path("test_output")
+    output_dir.mkdir(exist_ok=True)
+    wing_stl_path = output_dir / "wing.stl"
+    bounding_box_stl_path = output_dir / "bounding_box.stl"
+    
+    # Generate the wing
+    param_array = [0, 0.0, 0.0, 0.0, 1.0]  # Example parameters
+    wing = airfoilLayers(
+        density=3, 
+        wing_span=0.065 / 2, 
+        wing_chord=0.02, 
+        surface_degree_u=2, 
+        surface_degree_v=1, 
+        sample_resolution=60
+    )
+    wing.create_geometry_from_array(param_array, ["naca0012.dat"], str(wing_stl_path))
+    print(f"Wing STL saved as '{wing_stl_path}'")
+    
+    # Collect all points from the wing surface
+    all_points = []
+    for layer in wing.layers:
+        all_points.extend(layer.coords)
+    
+    # Create a Trimesh object for the wing
+    wing_mesh = trimesh.Trimesh(vertices=all_points)
+    
+    # Calculate the bounding box
+    bounding_box = calculate_bounding_box_trimesh(all_points)
+    print(f"Bounding box dimensions: {bounding_box.extents}")
+    
+    # Save the wing STL
+    save_stl(wing_mesh, str(wing_stl_path))
+    
+    # Save the bounding box STL
+    save_stl(bounding_box, str(bounding_box_stl_path))
+
 if __name__ == "__main__":
+    main()
+
     # Example usage - Better parameter grouping
     airfoil_files = ["naca2412.dat"]
     # Format: [airfoil0, pitch0, y_offset0, z_offset0, scale0, airfoil1, pitch1, y_offset1, z_offset1, scale1, ...]

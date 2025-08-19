@@ -60,18 +60,28 @@ AIRFOIL_CENTER_FIXED = {
 # Parameter bounds with individual min/max controls in physical units
 PARAM_BOUNDS = {
     # Y-offset (chord direction) bounds in mm
-    'Y_OFFSET_MIN_MM': -2.0,
-    'Y_OFFSET_MAX_MM': 2.0,
+    'Y_OFFSET_MIN_MM': -5.0,
+    'Y_OFFSET_MAX_MM': 5.0,
     
     # Z-offset (height direction) bounds in mm
-    'Z_OFFSET_MIN_MM': -2.0,
+    'Z_OFFSET_MIN_MM': -10.0,
     'Z_OFFSET_MAX_MM': 0.0,
     
     # Pitch angle in degrees
-    'PITCH_ANGLE_MIN': -15.0,
-    'PITCH_ANGLE_MAX': 15.0,
+    'PITCH_ANGLE_MIN': -20.0,
+    'PITCH_ANGLE_MAX': 20.0,
     
     # Scale factor (unitless)
     'SCALE_MIN': 0.75,  # 15mm chord with 20mm base
     'SCALE_MAX': 1.25   # 25mm chord with 20mm base
+}
+
+# Bounding box limits (in model units)
+BOUNDING_BOX_LIMITS = {
+    'x_min': -0.05,  # Minimum x-coordinate
+    'x_max': 0.05,   # Maximum x-coordinate
+    'y_min': -0.0856,   # Minimum y-coordinate
+    'y_max': -0.1256,    # Maximum y-coordinate
+    'z_min': 0.005,    # Minimum z-coordinate
+    'z_max': 0.02    # Maximum z-coordinate
 }

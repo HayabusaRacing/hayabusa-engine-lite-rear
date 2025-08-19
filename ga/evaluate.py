@@ -3,7 +3,7 @@ from geometry.geometryParams import GeometryParams
 from foam.setupCase import setup_case
 from foam.runner import OpenFOAMParallelRunner
 from foam.extractCD import extract_latest_cd
-from config import (BASE_DIR, CASE_DIR, TMP_DIR, MIN_WING_DIMENSIONS,
+from config import (BASE_DIR, BOUNDING_BOX_LIMITS, CASE_DIR, TMP_DIR, MIN_WING_DIMENSIONS,
                    DIMENSION_PENALTY_WEIGHT, VOLUME_REWARD_WEIGHT, SMOOTHNESS_REWARD_WEIGHT, 
                    CD_WEIGHT, EXPECTED_VOLUME_RANGE,
                    AIRFOIL_DENSITY, AIRFOIL_WING_SPAN, AIRFOIL_WING_CHORD, AIRFOIL_FILES,
@@ -104,21 +104,50 @@ def calculate_fitness(cd, mesh):
     smoothness_component = SMOOTHNESS_REWARD_WEIGHT * smoothness
     dimension_penalty = check_dimension_constraints(mesh, MIN_WING_DIMENSIONS)
     dimension_component = DIMENSION_PENALTY_WEIGHT * dimension_penalty
-    fitness = drag_component + volume_component + smoothness_component + dimension_component
+    
+    # Add bounding box penalty
+    bounding_box_penalty = calculate_bounding_box_penalty(mesh, BOUNDING_BOX_LIMITS)
+    bounding_box_component = bounding_box_penalty  # Binary penalty (0 or 1)
+    
+    fitness = drag_component + volume_component + smoothness_component + dimension_component + bounding_box_component
     fitness_breakdown = {
         "Cd": cd,
         "volume": volume,
         "volume_source": volume_source,
         "smoothness": smoothness,
         "dimension_penalty": dimension_penalty,
+        "bounding_box_penalty": bounding_box_penalty,
         "drag_component": drag_component,
         "volume_component": volume_component,
         "smoothness_component": smoothness_component,
         "dimension_component": dimension_component,
+        "bounding_box_component": bounding_box_component,
         "total_fitness": fitness
     }
     
     return fitness, fitness_breakdown
+
+def calculate_bounding_box_penalty(mesh, bounding_box_limits):
+    """
+    Calculate a binary penalty if the mesh is outside the defined bounding box.
+    
+    Args:
+        mesh: The trimesh object of the wing
+        bounding_box_limits: A dictionary defining the bounding box limits
+    
+    Returns:
+        1 if the mesh is outside the bounding box, 0 otherwise
+    """
+    bounds = mesh.bounds
+    min_coords = bounds[0]
+    max_coords = bounds[1]
+    
+    # Check if the mesh is outside the bounding box
+    if (min_coords[0] < bounding_box_limits['x_min'] or max_coords[0] > bounding_box_limits['x_max'] or
+        min_coords[1] < bounding_box_limits['y_min'] or max_coords[1] > bounding_box_limits['y_max'] or
+        min_coords[2] < bounding_box_limits['z_min'] or max_coords[2] > bounding_box_limits['z_max']):
+        return 1  # Penalty for being outside the bounding box
+    return 0  # No penalty
 
 def evaluate(params: GeometryParams) -> float:
     try:
