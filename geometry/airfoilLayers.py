@@ -392,21 +392,26 @@ class airfoilLayers:
         return parameters
     
     def get_parameter_bounds(self):
-        # Scale bounds relative to wing dimensions for realistic mutations
-        # Y-offset should be a fraction of chord length
-        # Z-offset should be a fraction of span length
-        chord_fraction = 0.1  # Allow ±10% of chord length movement
-        span_fraction = 0.2   # Allow ±20% of span length movement
-        
-        max_y_offset = self.wing_chord * chord_fraction
-        max_z_offset = self.wing_span * span_fraction
-        
+        """
+        Dynamically retrieve parameter bounds using configuration values from config.py.
+        """
+        from config import (
+            AIRFOIL_FILES,
+            PITCH_ANGLE_BOUNDS,
+            Y_OFFSET_BOUNDS,
+            Z_OFFSET_BOUNDS,
+            SCALE_BOUNDS
+        )
+
+        # Dynamically calculate the airfoil type range based on the number of airfoil files
+        airfoil_type_bounds = (0, len(AIRFOIL_FILES) - 1)
+
         return {
-            'wing_type_idx': (0, 5),        # Conservative airfoil type range
-            'pitch_angle': (-10, 10),       # Reasonable pitch range for small wings
-            'y_offset': (-max_y_offset, max_y_offset),  # Scaled to chord
-            'z_offset': (-max_z_offset, max_z_offset),  # Scaled to span  
-            'scale': (0.5, 1.2)             # Conservative scale range
+            'wing_type_idx': airfoil_type_bounds,  # Dynamically set based on airfoil files
+            'pitch_angle': PITCH_ANGLE_BOUNDS,    # From config.py
+            'y_offset': Y_OFFSET_BOUNDS,          # From config.py
+            'z_offset': Z_OFFSET_BOUNDS,          # From config.py
+            'scale': SCALE_BOUNDS                 # From config.py
         }
     
     def get_array_size(self):
