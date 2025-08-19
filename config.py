@@ -80,8 +80,8 @@ PARAM_BOUNDS = {
 BOUNDING_BOX_LIMITS = {
     'x_min': -0.05,  # Minimum x-coordinate
     'x_max': 0.05,   # Maximum x-coordinate
-    'y_min': -0.0856,   # Minimum y-coordinate
-    'y_max': -0.1256,    # Maximum y-coordinate
+    'y_min': -0.1256,   # Minimum y-coordinate (fixed - was incorrectly larger than y_max)
+    'y_max': -0.0856,    # Maximum y-coordinate (fixed - was incorrectly smaller than y_min)
     'z_min': 0.005,    # Minimum z-coordinate
     'z_max': 0.02    # Maximum z-coordinate
 }

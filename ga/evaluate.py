@@ -142,14 +142,39 @@ def calculate_bounding_box_penalty(mesh, bounding_box_limits):
     min_coords = bounds[0]
     max_coords = bounds[1]
     
+    # Detailed bounds checking with logging
+    violations = []
+    
+    # Check X bounds
+    if min_coords[0] < bounding_box_limits['x_min']:
+        violations.append(f"X min violation: {min_coords[0]:.6f} < {bounding_box_limits['x_min']:.6f}")
+    if max_coords[0] > bounding_box_limits['x_max']:
+        violations.append(f"X max violation: {max_coords[0]:.6f} > {bounding_box_limits['x_max']:.6f}")
+    
+    # Check Y bounds
+    if min_coords[1] < bounding_box_limits['y_min']:
+        violations.append(f"Y min violation: {min_coords[1]:.6f} < {bounding_box_limits['y_min']:.6f}")
+    if max_coords[1] > bounding_box_limits['y_max']:
+        violations.append(f"Y max violation: {max_coords[1]:.6f} > {bounding_box_limits['y_max']:.6f}")
+    
+    # Check Z bounds
+    if min_coords[2] < bounding_box_limits['z_min']:
+        violations.append(f"Z min violation: {min_coords[2]:.6f} < {bounding_box_limits['z_min']:.6f}")
+    if max_coords[2] > bounding_box_limits['z_max']:
+        violations.append(f"Z max violation: {max_coords[2]:.6f} > {bounding_box_limits['z_max']:.6f}")
+    
     # Check if the mesh is outside the bounding box
-    if (min_coords[0] < bounding_box_limits['x_min'] or max_coords[0] > bounding_box_limits['x_max'] or
-        min_coords[1] < bounding_box_limits['y_min'] or max_coords[1] > bounding_box_limits['y_max'] or
-        min_coords[2] < bounding_box_limits['z_min'] or max_coords[2] > bounding_box_limits['z_max']):
+    if violations:
+        print(f"BOUNDING BOX VIOLATIONS:")
+        for violation in violations:
+            print(f"  - {violation}")
         return 1  # Penalty for being outside the bounding box
+        
+    print(f"BOUNDING BOX: All constraints satisfied")
     return 0  # No penalty
 
-def evaluate(params: GeometryParams) -> float:
+def evaluate_with_openfoam(params: GeometryParams) -> float:
+    """Original evaluation function that uses OpenFOAM simulations"""
     try:
         setup_case(base_dir=BASE_DIR, case_dir=CASE_DIR)
         
@@ -186,3 +211,76 @@ def evaluate(params: GeometryParams) -> float:
     except Exception as e:
         print(f"Evaluation error: {e}")
         return float('inf')
+
+
+def evaluate_dummy(params: GeometryParams) -> float:
+    """Dummy evaluation function that skips OpenFOAM simulations for faster testing"""
+    try:
+        # Create wing geometry (still need this for fitness evaluation)
+        wing_generator = airfoilLayers(
+            density=AIRFOIL_DENSITY, 
+            wing_span=AIRFOIL_WING_SPAN, 
+            wing_chord=AIRFOIL_WING_CHORD,
+            y_center=AIRFOIL_Y_CENTER,
+            x_center=AIRFOIL_X_CENTER,
+            z_center=AIRFOIL_Z_CENTER,
+            surface_degree_u=AIRFOIL_SURFACE_DEGREE_U,
+            surface_degree_v=AIRFOIL_SURFACE_DEGREE_V,
+            sample_resolution=AIRFOIL_SAMPLE_RESOLUTION
+        )
+        wing_filename = wing_generator.create_geometry_from_array(
+            params.ts, AIRFOIL_FILES, str(TMP_DIR / "wing.stl")
+        )
+        mesh_wing = trimesh.load(wing_filename)
+        
+        # Generate synthetic drag coefficient based on wing parameters
+        # This is a simplified model based on wing characteristics
+        # You can adjust this formula based on your domain knowledge
+        
+        # Calculate some basic geometry metrics
+        bounds = mesh_wing.bounds
+        dimensions = bounds[1] - bounds[0]
+        aspect_ratio = dimensions[1] / dimensions[2] if dimensions[2] > 0 else 1
+        
+        # Synthesize a drag coefficient based on geometry
+        # This is a simplified model - adjust weights based on your understanding
+        base_cd = 0.25  # Base drag coefficient
+        volume_factor = 1 + mesh_wing.volume * 1000  # More volume = more drag
+        ar_factor = 0.8 + 0.4 / (aspect_ratio + 0.5)  # Higher aspect ratio = less drag
+        
+        # Add some noise to simulate variation in CFD results
+        noise = np.random.normal(0, 0.02)  # Random noise with std=0.02
+        
+        # Combine factors to get synthetic Cd
+        synthetic_cd = base_cd * volume_factor * ar_factor + noise
+        
+        # Print debug info
+        print(f"DUMMY EVALUATION: volume={mesh_wing.volume:.6e}, aspect_ratio={aspect_ratio:.2f}")
+        print(f"DUMMY EVALUATION: synthetic_cd={synthetic_cd:.4f}")
+        
+        # Calculate fitness using the synthetic drag coefficient
+        fitness, fitness_breakdown = calculate_fitness(synthetic_cd, mesh_wing)
+        params.fitness = fitness
+        params.fitness_breakdown = fitness_breakdown
+        
+        # Debug info for bounding box
+        print(f"DUMMY EVALUATION: Mesh bounds min: {bounds[0]}, max: {bounds[1]}")
+        print(f"DUMMY EVALUATION: Bounding box limits: {BOUNDING_BOX_LIMITS}")
+        print(f"DUMMY EVALUATION: Bounding box penalty: {fitness_breakdown['bounding_box_penalty']}")
+        
+        return fitness
+        
+    except Exception as e:
+        print(f"Dummy evaluation error: {e}")
+        return float('inf')
+
+
+# Set this to choose which evaluation method to use
+USE_DUMMY_EVALUATION = True
+
+def evaluate(params: GeometryParams) -> float:
+    """Main evaluation function that calls either the real or dummy evaluation"""
+    if USE_DUMMY_EVALUATION:
+        return evaluate_dummy(params)
+    else:
+        return evaluate_with_openfoam(params)
