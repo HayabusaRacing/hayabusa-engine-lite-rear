@@ -8,6 +8,7 @@ class Individual:
     def __init__(self, ts):
         self.params = GeometryParams(ts)
         self.fitness = None        
+        self.clip_to_bounds()  # Ensure initial parameters are within bounds
 
     def mutate(self, rate=MUTATION_RATE, strength=MUTATION_STRENGTH):
         new_ts = []
