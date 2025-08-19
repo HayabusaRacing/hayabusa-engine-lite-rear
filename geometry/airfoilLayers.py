@@ -392,26 +392,16 @@ class airfoilLayers:
         return parameters
     
     def get_parameter_bounds(self):
-        """
-        Dynamically retrieve parameter bounds using configuration values from config.py.
-        """
-        from config import (
-            AIRFOIL_FILES,
-            PITCH_ANGLE_BOUNDS,
-            Y_OFFSET_BOUNDS,
-            Z_OFFSET_BOUNDS,
-            SCALE_BOUNDS
-        )
-
-        # Dynamically calculate the airfoil type range based on the number of airfoil files
-        airfoil_type_bounds = (0, len(AIRFOIL_FILES) - 1)
-
+        # Import bounds from config.py
+        from config import PARAM_BOUNDS, AIRFOIL_FILES
+        
+        # Return bounds dictionary with mm converted to m for offsets
         return {
-            'wing_type_idx': airfoil_type_bounds,  # Dynamically set based on airfoil files
-            'pitch_angle': PITCH_ANGLE_BOUNDS,    # From config.py
-            'y_offset': Y_OFFSET_BOUNDS,          # From config.py
-            'z_offset': Z_OFFSET_BOUNDS,          # From config.py
-            'scale': SCALE_BOUNDS                 # From config.py
+            'wing_type_idx': (0, len(AIRFOIL_FILES) - 1),  # Based on number of airfoil files
+            'pitch_angle': (PARAM_BOUNDS['PITCH_ANGLE_MIN'], PARAM_BOUNDS['PITCH_ANGLE_MAX']),
+            'y_offset': (PARAM_BOUNDS['Y_OFFSET_MIN_MM'] / 1000, PARAM_BOUNDS['Y_OFFSET_MAX_MM'] / 1000),  # Convert mm to m
+            'z_offset': (PARAM_BOUNDS['Z_OFFSET_MIN_MM'] / 1000, PARAM_BOUNDS['Z_OFFSET_MAX_MM'] / 1000),  # Convert mm to m
+            'scale': (PARAM_BOUNDS['SCALE_MIN'], PARAM_BOUNDS['SCALE_MAX'])
         }
     
     def get_array_size(self):
