@@ -6,12 +6,12 @@ import numpy as np
 import struct
 import math
 
-# Import config for fixed center airfoil parameters
+# Import config for fixed end airfoil parameters
 try:
-    from config import AIRFOIL_CENTER_FIXED
+    from config import AIRFOIL_END_FIXED
 except ImportError:
     # Fallback if config not available
-    AIRFOIL_CENTER_FIXED = {
+    AIRFOIL_END_FIXED = {
         'wing_type_idx': 0,
         'pitch_angle': 0.0,
         'y_offset': 0.0,
@@ -266,7 +266,7 @@ class airfoilLayers:
         print(f"Closed mesh STL file exported successfully as '{filename}'")
     
     def get_parameter_number(self):
-        # Only optimize outer layers (indices 1 to density-1), center (index 0) is fixed
+        # Only optimize inner layers (indices 0 to density-2), end layer (index density-1) is fixed
         return (self.density - 1) * 5
 
     def _write_closed_mesh_stl(self, surf, filename):
@@ -357,27 +357,15 @@ class airfoilLayers:
     def _array_to_parameters(self, param_array, airfoil_files):
         parameters = []
         param_per_layer = 5
-        expected_params = (self.density - 1) * param_per_layer  # Only outer layers are optimized
+        expected_params = (self.density - 1) * param_per_layer  # Only inner layers are optimized
         
         if len(param_array) != expected_params:
             raise ValueError(f"Expected {expected_params} parameters for {self.density-1} optimizable layers, got {len(param_array)}")
         
-        # Add fixed center airfoil (index 0)
-        center_wing_type = airfoil_files[AIRFOIL_CENTER_FIXED['wing_type_idx'] % len(airfoil_files)]
-        center_param = geometryParameter(
-            center_wing_type,
-            AIRFOIL_CENTER_FIXED['pitch_angle'],
-            AIRFOIL_CENTER_FIXED['y_offset'],
-            AIRFOIL_CENTER_FIXED['z_offset'],
-            AIRFOIL_CENTER_FIXED['scale']
-        )
-        parameters.append(center_param)
-        
-        # Add optimizable outer layers (indices 1 to density-1)
-        for i in range(1, self.density):
-            # Array index for this layer (0-based for param_array since center is not in array)
-            array_layer_idx = i - 1
-            base_idx = array_layer_idx * param_per_layer
+        # Add optimizable inner layers (indices 0 to density-2)
+        for i in range(self.density - 1):
+            # Array index for this layer (0-based for param_array)
+            base_idx = i * param_per_layer
             
             wing_type_idx = int(param_array[base_idx])
             wing_type = airfoil_files[wing_type_idx % len(airfoil_files)]
@@ -388,6 +376,17 @@ class airfoilLayers:
             scale = param_array[base_idx + 4]
             
             parameters.append(geometryParameter(wing_type, pitch_angle, y_offset, z_offset, scale))
+        
+        # Add fixed end airfoil (index density-1)
+        end_wing_type = airfoil_files[AIRFOIL_END_FIXED['wing_type_idx'] % len(airfoil_files)]
+        end_param = geometryParameter(
+            end_wing_type,
+            AIRFOIL_END_FIXED['pitch_angle'],
+            AIRFOIL_END_FIXED['y_offset'],
+            AIRFOIL_END_FIXED['z_offset'],
+            AIRFOIL_END_FIXED['scale']
+        )
+        parameters.append(end_param)
         
         return parameters
     
@@ -556,6 +555,7 @@ def calculate_bounding_box_trimesh(points):
     Returns:
         A trimesh object representing the bounding box
     """
+    import trimesh
     # Create a Trimesh object from the points
     cloud = trimesh.points.PointCloud(points)
     
@@ -576,6 +576,9 @@ def save_stl(mesh, filename):
 
 def main():
     # Configuration
+    from pathlib import Path
+    import trimesh
+    
     output_dir = Path("test_output")
     output_dir.mkdir(exist_ok=True)
     wing_stl_path = output_dir / "wing.stl"
@@ -600,6 +603,7 @@ def main():
         all_points.extend(layer.coords)
     
     # Create a Trimesh object for the wing
+    import trimesh
     wing_mesh = trimesh.Trimesh(vertices=all_points)
     
     # Calculate the bounding box

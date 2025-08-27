@@ -29,8 +29,8 @@ def generate_wing_and_combine():
     
     # Test parameters for 2 outer layers (10 parameters total)
     test_params = [
-        0, 15, 0.0, 0.0, 1,  # Layer 1: wing_type, pitch, y_offset, z_offset, scale
-        0, 25, 0.0, 0.0, 1   # Layer 2: wing_type, pitch, y_offset, z_offset, scale
+        0, 10, 0.0, 0.0, 1,  # Layer 1: wing_type, pitch, y_offset, z_offset, scale
+        0, 5, 0.0, 0.0, 1   # Layer 2: wing_type, pitch, y_offset, z_offset, scale
     ]
     
     print(f"Using test parameters: {test_params}")

@@ -38,50 +38,51 @@ EXPECTED_VOLUME_RANGE = [1e-6, 1e-4]
 
 # Airfoil Layers Configuration
 AIRFOIL_DENSITY = 3
-AIRFOIL_WING_SPAN = 0.065 / 2
-AIRFOIL_WING_CHORD = 0.02
+AIRFOIL_WING_SPAN = 0.050 / 2
+AIRFOIL_WING_CHORD = 0.015
 AIRFOIL_X_CENTER = 0
-AIRFOIL_Y_CENTER = -0.1075
-AIRFOIL_Z_CENTER = 0.018
+AIRFOIL_Y_CENTER = 0.0975
+AIRFOIL_Z_CENTER = 0.05
 AIRFOIL_SURFACE_DEGREE_U = 2  # Reduced from 3
 AIRFOIL_SURFACE_DEGREE_V = 1  # Reduced from 2 - safer with only 3 layers
 AIRFOIL_SAMPLE_RESOLUTION = 60  # Increased for better resolution
 AIRFOIL_FILES = ["naca0012.dat", "e387.dat", "mh45.dat", "sd77032.dat"]  # Will be populated when you add more files
 
-# Fixed center airfoil configuration (index 0 - not optimized)
-AIRFOIL_CENTER_FIXED = {
+# Fixed end airfoil configuration (index density-1 - not optimized)
+# This is the wing tip configuration that remains constant during optimization
+AIRFOIL_END_FIXED = {
     'wing_type_idx': 0,      # Use first airfoil file
-    'pitch_angle': 0.0,      # No pitch angle for center
-    'y_offset': 0.0,         # No Y offset for center
-    'z_offset': 0.0,         # No Z offset for center  
-    'scale': 1.0             # Full scale for center
+    'pitch_angle': 0.0,      # No pitch angle for end
+    'y_offset': 0.0,         # No Y offset for end
+    'z_offset': 0.0,         # No Z offset for end  
+    'scale': 1.0             # Full scale for end
 }
 
 # Parameter bounds with individual min/max controls in physical units
 PARAM_BOUNDS = {
     # Y-offset (chord direction) bounds in mm
-    'Y_OFFSET_MIN_MM': -5.0,
-    'Y_OFFSET_MAX_MM': 5.0,
+    'Y_OFFSET_MIN_MM': -10.0,
+    'Y_OFFSET_MAX_MM': 10.0,
     
     # Z-offset (height direction) bounds in mm
-    'Z_OFFSET_MIN_MM': -10.0,
-    'Z_OFFSET_MAX_MM': 0.0,
+    'Z_OFFSET_MIN_MM': -2.0,
+    'Z_OFFSET_MAX_MM': 10.0,
     
     # Pitch angle in degrees
-    'PITCH_ANGLE_MIN': -20.0,
+    'PITCH_ANGLE_MIN': -5.0,
     'PITCH_ANGLE_MAX': 20.0,
     
     # Scale factor (unitless)
-    'SCALE_MIN': 0.75,  # 15mm chord with 20mm base
-    'SCALE_MAX': 1.25   # 25mm chord with 20mm base
+    'SCALE_MIN': 1,  # 15mm chord with 20mm base
+    'SCALE_MAX': 1.6666666   # 25mm chord with 20mm base
 }
 
 # Bounding box limits (in model units)
 BOUNDING_BOX_LIMITS = {
     'x_min': -0.05,  # Minimum x-coordinate
     'x_max': 0.05,   # Maximum x-coordinate
-    'y_min': -0.1256,   # Minimum y-coordinate (fixed - was incorrectly larger than y_max)
-    'y_max': -0.0856,    # Maximum y-coordinate (fixed - was incorrectly smaller than y_min)
-    'z_min': 0.005,    # Minimum z-coordinate
-    'z_max': 0.02    # Maximum z-coordinate
+    'y_min': 0.089,   # Minimum y-coordinate (fixed - was incorrectly larger than y_max)
+    'y_max': 0.126,    # Maximum y-coordinate (fixed - was incorrectly smaller than y_min)
+    'z_min': 0.0475,    # Minimum z-coordinate
+    'z_max': 0.065    # Maximum z-coordinate
 }
