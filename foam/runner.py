@@ -28,9 +28,9 @@ class OpenFOAMParallelRunner:
     
     def run_snappyHexMesh(self):
         return self._run_with_log(["snappyHexMesh", "-overwrite", "-case", str(self.case_dir)], "snappyHexMesh")
-        runner.start()
-        runner.run.join()
-        return runner.run.returncode == 0
+    
+    def run_potentialFoam(self):
+        return self._run_with_log(["potentialFoam", "-writep", "-case", str(self.case_dir)], "potentialFoam")
 
     def decompose_case(self):
         runner = UtilityRunner(argv=["decomposePar", "-force", "-case", str(self.case_dir)], silent=False)
@@ -74,6 +74,8 @@ class OpenFOAMParallelRunner:
         if not self.run_all_surfaceFeatureExtract():
             return False
         if not self.run_snappyHexMesh():
+            return False
+        if not self.run_potentialFoam():
             return False
         if not self.decompose_case():
             return False
